@@ -1,12 +1,15 @@
 # Development Roadmap
 
-- Phase 0: Repository / Architecture Freeze v0.2
+- Phase 0: Repository / Architecture Freeze v0.3
 - Phase 1: Board abstraction + HAL + basic TWAI
 - Phase 2: ISO-TP / DiagnosticTransport boundary
 - Phase 3: Generic OBD-II read-only
 - Phase 4: Generic UDS read-only + ReadOnlyGuard
 - Phase 5: VehicleData + Scheduler
 - Phase 6: VAG Brand Layer + Kamiq Profile
+- Phase 6a: Brand extension boundary + Brand Profile Set / Active Profile（future implementation planning）
+- Phase 6b: Capability registry + normalized signal registry（future implementation planning）
+- Phase 6c: Deep Diagnostic on-demand path（future implementation planning）
 - Phase 7: BLE
 - Phase 8: Web
 - Phase 9: Passive CAN

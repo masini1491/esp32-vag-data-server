@@ -69,3 +69,19 @@
 共同 minimum dataset 為 VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.coolantTemp`、`vehicle.voltage`；optional 為 gear、oilTemp、wheel speeds、steering angle、ACC set speed。不存在的 capability 應標示 `unsupported` / `unavailable`，不得以假值代替。
 
 所有項目直到取得實車 evidence 前均維持 `Pending`，不得宣稱 T-Roc、RAV4 或 Wish supported。
+
+## Architecture Research v0.3
+
+### Confirmed architecture decisions
+
+- `CONFIRMED ARCHITECTURE DECISION`: Multi-brand extensibility 不代表一個 firmware shipping 所有品牌；build/project 可選擇所需 Brand Layer / Profile Set。
+- `CONFIRMED ARCHITECTURE DECISION`: Generic Core remains reusable。
+- `CONFIRMED ARCHITECTURE DECISION`: Brand implementations 未來可依 project/build selection 加入，其他 contributor 可自行延伸。
+- `CONFIRMED ARCHITECTURE DECISION`: Brand Profile Set → Profile Resolver → Active Vehicle Profile 是預期責任模型。
+- `CONFIRMED ARCHITECTURE DECISION`: Optional capabilities，包括 Deep Diagnostic，必須顯式宣告 availability state。
+- `CONFIRMED ARCHITECTURE DECISION`: SRS / pretensioner diagnostics 是 profile-specific、read-only，優先 on-demand。
+- `CONFIRMED ARCHITECTURE DECISION`: Profile file/storage format 未決定；BrandAdapter implementation form 亦待 implementation evidence。
+
+### Deep Diagnostic status
+
+SRS / pretensioner resistance、circuit、status、ABS/ACC extended values 與 ECU-specific identification 可作 normalized optional capability examples。Kamiq exact ECU route、DID、scaling、physical interpretation、availability 與 polling evidence 全部維持 `Pending / Unknown`；不得發明 DID 或由 resistance 單獨推論車輛歷史。

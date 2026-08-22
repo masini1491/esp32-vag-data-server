@@ -29,6 +29,8 @@ Debug 流程：Evidence → Root Cause → Focused Patch → Targeted Validation
 
 Generic Core 必須保持 brand-independent；VAG-specific routing、CAN ID、DID、scaling 與 semantics 只能存在於 Brand Layer / Vehicle Profile。Repository 維持 VAG-first；future brand support 需先有實際 evidence，不預先加入 speculative code。
 
+單一 firmware build 不要求包含所有品牌；Brand Profile Set、Profile Resolver、Active Vehicle Profile 與 capability state 是 architecture boundaries，不在文件階段建立 implementation。Optional / Deep Diagnostic capability 必須顯式標示 `unsupported`、`unavailable` 或 `pending` / `unknown`，不得以假值代替；Deep Diagnostic 預設 on-demand，所有 diagnostic TX 永遠經 `ReadOnlyGuard`。
+
 ## Read-only
 
 不得引入 coding、adaptation、clear DTC、output tests、security access、flashing 或 actuator control。任何 diagnostic TX path 未來都必須經 `ReadOnlyGuard`。

@@ -8,6 +8,8 @@
 
 本專案目前仍以 VAG / Kamiq 為第一目標。Generic Core 刻意分離 transport、diagnostic protocol、brand semantics、Vehicle Profile 與 `VehicleData`；未來可能透過 Brand Layer / Vehicle Profile 擴充其他品牌，但目前不宣稱 multi-brand support。
 
+官方 implementation target 仍為 VAG；其他 contributor 或 fork 未來可保留 Generic Core，自行加入 Brand Layer / Vehicle Profile。單一 firmware build 不要求包含所有品牌。
+
 ## 初始研究／驗證車型
 
 Škoda Kamiq 2024 facelift（MQB-A0 family）是初始研究／驗證目標。本專案架構不限定 Kamiq-only，目前也不宣稱已支援 Kamiq 2024。

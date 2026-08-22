@@ -18,3 +18,8 @@
 - Added brand-independent Generic Core boundary.
 - Added DiagnosticTransport / Brand Layer architecture boundary.
 - Added future portability validation plan for Kamiq → T-Roc → RAV4 → Wish.
+- Architecture Freeze v0.3.
+- Added Brand Extension / Brand Profile Set / Active Profile boundaries.
+- Added capability-driven VehicleData architecture.
+- Added Deep Diagnostic / SRS on-demand responsibility model.
+- Clarified that firmware builds do not need to include all brands.
