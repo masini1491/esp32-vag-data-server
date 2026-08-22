@@ -9,9 +9,9 @@ Reuse status: `REFERENCE_ONLY` / cross-source synthesis
 
 [opendbc](https://github.com/commaai/opendbc) represents `SKODA_KAMIQ_MK1` through `VolkswagenMQBPlatformConfig` with its own platform/chassis identification and vehicle metadata. This supports `Generic Core → VAG Brand Layer → VAG Profile Set → Kamiq Vehicle Profile`, but does not establish 2024 facelift compatibility, exact CAN IDs, ECU routes, DIDs, scaling, OBD visibility or SFD behavior.
 
-The existing canonical [vehicle_coverage note](../vag/VEHICLE_COVERAGE.md) records a CanBusHack Kamiq 2024 coverage entry with signal-description categories including speed, engine, wheel speed, steering, gear/selector, ACC, seatbelt, airbag, pretensioner and electrical measurements. This is `UPSTREAM_COVERAGE_CONFIRMED` only; raw lists are not copied here.
+The existing canonical [vehicle_coverage note](../../vag/VEHICLE_COVERAGE.md) records a CanBusHack Kamiq 2024 coverage entry with signal-description categories including speed, engine, wheel speed, steering, gear/selector, ACC, seatbelt, airbag, pretensioner and electrical measurements. This is `UPSTREAM_COVERAGE_CONFIRMED` only; raw lists are not copied here.
 
-[mcd-diag-rs](../vag/MCD_DIAG_RS.md) supplies a future PC-side flatten/profile-builder pattern. [MQB-sniffer](../vag/MQB_SNIFFER.md) supplies read-only trace methodology; Golf-specific addresses, DIDs, routes and values are not Kamiq evidence.
+[mcd-diag-rs](../../vag/MCD_DIAG_RS.md) supplies a future PC-side flatten/profile-builder pattern. [MQB-sniffer](../../vag/MQB_SNIFFER.md) supplies read-only trace methodology; Golf-specific addresses, DIDs, routes and values are not Kamiq evidence.
 
 ## Architecture / validation implication
 
