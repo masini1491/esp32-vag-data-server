@@ -1,0 +1,21 @@
+name: Host Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Compile host tests
+        run: g++ -std=c++17 -Wall -Wextra -pedantic -I. tests/host/main.cpp -o "$RUNNER_TEMP/host_tests"
+
+      - name: Run host tests
+        run: "$RUNNER_TEMP/host_tests"
