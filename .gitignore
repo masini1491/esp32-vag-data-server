@@ -1,0 +1,43 @@
+# Arduino / ESP32 / PlatformIO
+.pio/
+build/
+out/
+*.elf
+*.bin
+*.hex
+*.map
+
+# IDE metadata
+.vscode/
+.idea/
+*.code-workspace
+
+# Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.swp
+tmp/
+temp/
+
+# Secrets and local configuration
+.env
+.env.*
+*.pem
+*.key
+secrets/
+local_data/
+private_data/
+
+# Generated / proprietary diagnostic databases
+generated_data/
+generated_databases/
+diagnostic_databases/
+*.odx
+*.pdx
+*.mdf
+*.frf
+
+# OS files
+.DS_Store
+Thumbs.db
