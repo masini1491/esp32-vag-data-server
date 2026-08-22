@@ -1,10 +1,10 @@
 # ESP32 VAG Data Server
 
-**專案狀態：** 架構設計／研究階段
+**專案狀態：** Architecture Freeze v0.3 完成／Phase 1 software foundation PASS
 
 ## 專案目的
 
-本專案規劃建立一個以 ESP32-S3 family 為平台的 Volkswagen Group 唯讀 vehicle data server，將 Vehicle CAN 的被動與診斷資料正規化為 `VehicleData`，供 BLE、Wi-Fi Web UI 與 Logger 使用。
+本專案建立一個以 ESP32-S3 family 為平台的 Volkswagen Group 唯讀 vehicle data server，將 Vehicle CAN 的被動與診斷資料正規化為 `VehicleData`，供 BLE、Wi-Fi Web UI 與 Logger 使用。Phase 1 software foundation 已完成，但尚未代表實車支援或整個專案完成。
 
 本專案目前仍以 VAG / Kamiq 為第一目標。Generic Core 刻意分離 transport、diagnostic protocol、brand semantics、Vehicle Profile 與 `VehicleData`；未來可能透過 Brand Layer / Vehicle Profile 擴充其他品牌，但目前不宣稱 multi-brand support。
 
@@ -13,6 +13,18 @@
 ## 初始研究／驗證車型
 
 Škoda Kamiq 2024 facelift（MQB-A0 family）是初始研究／驗證目標。本專案架構不限定 Kamiq-only，目前也不宣稱已支援 Kamiq 2024。
+
+## 已完成的 Phase 1 foundation
+
+- Generic Classic CAN types
+- `Board Profile → HardwareConfig → HAL` abstraction
+- deterministic Mock CAN / Fake Clock host-test foundation
+- ESP32-S3 Classic CAN / TWAI backend
+- ESP32 generic S3 compile validation
+- GitHub Actions host compile / test CI
+- CAN foundation edge-case regression tests
+
+目前 Bench、Hardware 與 Vehicle validation 均為 Pending。
 
 ## 預計技術棧
 
@@ -92,7 +104,7 @@ HUD 不屬於本 Repository；未來會是另一個 client project。
 - CAN transceiver：TBD
 - GPIO 配置：TBD
 
-所有 GPIO 與 board-specific capability 預計經由 `Board Profile → HardwareConfig → HAL` 管理，不由 protocol/application layer 硬編。
+所有 GPIO 與 board-specific capability 經由 `Board Profile → HardwareConfig → HAL` 管理，不由 protocol/application layer 硬編。ESP32-S3 TWAI backend 已完成 compile validation，但 exact board、transceiver、GPIO 與實體 CAN hardware validation 仍為 TBD / Pending。
 
 ## 唯讀範圍與安全邊界
 
@@ -112,21 +124,24 @@ HUD 不屬於本 Repository；未來會是另一個 client project。
 ## 系統架構
 
 ```text
-Vehicle CAN
-→ Passive CAN / Diagnostic CAN
+Vehicle
+→ Passive CAN / Diagnostic Network
+→ CAN / DiagnosticTransport
 → ISO-TP
 → OBD-II / UDS
-→ VAG Data Layer
+→ Brand Extension / VAG Brand Layer
 → Vehicle Profile
 → VehicleData Store / Cache
-→ BLE / Web / Logger
+→ BLE / Web / Logger / future clients
 ```
 
-Realtime clients 預計優先讀取 `VehicleData Cache`，不因為瀏覽器 refresh 就直接重複 query ECU。詳見 [Architecture Freeze v0.2](docs/ARCHITECTURE.md)、[Read-only policy](docs/READ_ONLY_POLICY.md) 與 [Vehicle Profile](docs/VEHICLE_PROFILE.md)。
+Realtime clients 預計優先讀取 `VehicleData Cache`，不因為瀏覽器 refresh 就直接重複 query ECU。詳見 [Architecture Freeze v0.3](docs/ARCHITECTURE.md)、[Read-only policy](docs/READ_ONLY_POLICY.md) 與 [Vehicle Profile](docs/VEHICLE_PROFILE.md)。
 
 ## 目前開發狀態
 
-目前仍處於 Architecture / Research stage。本輪尚未實作 CAN、ISO-TP、OBD-II、UDS、BLE、Web server 或 firmware；上述技術棧均為預計／規劃方向。
+已完成 Phase 1 software foundation：Generic CAN model、Board / HardwareConfig / CAN HAL abstraction、deterministic Mock CAN / Fake Clock、ESP32-S3 TWAI Classic CAN backend、host CI regression tests，以及 CAN foundation edge-case tests。
+
+尚未開始或尚未完成：ISO-TP、OBD-II、UDS、ReadOnlyGuard runtime path、VehicleData / Scheduler implementation、VAG Brand Layer / Kamiq profile implementation、BLE、Web、passive CAN decoding，以及 real hardware / vehicle validation。ISO-TP 是下一階段，尚未開始。
 
 研究與開發規劃詳見 [Development roadmap](docs/DEVELOPMENT.md)；upstream reference index 見 [REFERENCES.md](docs/REFERENCES.md)。
 
