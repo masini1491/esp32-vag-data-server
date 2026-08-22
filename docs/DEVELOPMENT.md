@@ -52,6 +52,7 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 
 - Software PASS：Generic CAN model、Board Profile → HardwareConfig → HAL、Mock CAN、Fake Clock 與 ESP32-S3 TWAI backend 已完成。
 - Host Test PASS：GitHub Actions host build/tests passed（run `32558147322`）。
+- CAN foundation edge-case regression coverage 已建立。
 - ESP32 Compile PASS：已使用 Arduino-ESP32 3.3.11 與 generic `esp32:esp32:esp32s3` target 編譯通過。
 - Bench PASS：Pending。
 - Hardware PASS：Pending。

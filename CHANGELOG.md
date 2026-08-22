@@ -28,3 +28,4 @@
 - Added ESP32-S3 Classic CAN / TWAI backend with Arduino integration boundary.
 - Consolidated Phase 1 foundation audit and implementation gate status.
 - Added minimal GitHub Actions host test CI and verified a passing run.
+- Expanded deterministic Phase 1 CAN foundation tests.
