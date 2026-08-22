@@ -5,6 +5,7 @@
 - Phase 1A-1: Host-testable HAL / CAN foundation（本輪；不含 TWAI backend）
 - Phase 1A-2: Deterministic Mock CAN / Fake Clock / host tests（本輪；不含 ISO-TP）
 - Phase 1A-3: ESP32-S3 Classic CAN / TWAI backend（本輪；不含 protocol behavior）
+- Phase 1A-4: Foundation consolidation / Phase 1 implementation gate（本輪）
 - Phase 2: ISO-TP / DiagnosticTransport boundary
 - Phase 3: Generic OBD-II read-only
 - Phase 4: Generic UDS read-only + ReadOnlyGuard
@@ -46,3 +47,14 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 ## Architecture Portability PASS
 
 條件是 Kamiq → VAG Profile、T-Roc → second VAG Profile、RAV4 → future Toyota Brand Layer + Profile 都能在不修改 Generic Core semantics 的情況下輸出共同 normalized VehicleData。實車完成前狀態維持 `Pending`。不同車款若無法提供某項 normalized signal，應回報 `unsupported` / `unavailable`，不以假值代替。
+
+## Phase 1 foundation status
+
+- Software PASS：Generic CAN model、Board Profile → HardwareConfig → HAL、Mock CAN、Fake Clock 與 ESP32-S3 TWAI backend 已完成。
+- Host Test PASS：Pending；本機未提供 host C++ compiler，尚未能執行 `tests/host/main.cpp`。
+- ESP32 Compile PASS：已使用 Arduino-ESP32 3.3.11 與 generic `esp32:esp32:esp32s3` target 編譯通過。
+- Bench PASS：Pending。
+- Hardware PASS：Pending。
+- Vehicle PASS：Pending。
+
+這代表 Phase 1 software foundation 可交給下一階段 ISO-TP implementation；不代表實體 TWAI receive 或 vehicle validation 已完成。
