@@ -39,4 +39,4 @@ Diagnostic/application upper layers 不得假設所有 vehicle link 都是 CAN�
 
 ## Reference reuse
 
-實作 protocol / VAG 功能前先查看 `docs/REFERENCES.md` 的 upstream evidence；不得因「可能有關」重新大量 discovery。引用或重用 upstream source 前，先確認 license 與 provenance。
+實作 protocol / VAG 功能前先讀 `docs/references/SYNTHESIS.md`，再依 `docs/REFERENCES.md` 的 phase-specific reading set 讀必要 note；不要預設讀完整 reference library。除非符合 local Revisit trigger，禁止因「可能有關」重新 discovery upstream。引用或重用 upstream source 前，先確認 license 與 provenance。

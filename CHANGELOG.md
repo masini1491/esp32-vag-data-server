@@ -29,5 +29,6 @@
 - Consolidated Phase 1 foundation audit and implementation gate status.
 - Added minimal GitHub Actions host test CI and verified a passing run.
 - Expanded deterministic Phase 1 CAN foundation tests.
+- Reorganized upstream reference evidence library and added future K-Line/motorcycle portability research references.
 - Architecture Freeze v0.4.
 - Clarified diagnostic-link / transport extensibility without adding motorcycle support.
