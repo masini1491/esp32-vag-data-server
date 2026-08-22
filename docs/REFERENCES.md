@@ -38,10 +38,10 @@ KYMCO / SYM 沒有足夠成熟且可歸屬的 canonical evidence；不建立其 
 
 | Target | Phase | Evidence status | Detailed note |
 |---|---|---|---|
-| Škoda Kamiq | Primary vehicle / Phase 10 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [KAMIQ.md](references/portability/KAMIQ.md) |
-| Volkswagen T-Roc | Phase 11 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [TROC.md](references/portability/TROC.md) |
-| Toyota RAV4 | Phase 12 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [RAV4.md](references/portability/RAV4.md) |
-| Toyota Wish | Phase 13 | `INSUFFICIENT DIRECT EVIDENCE` / `VEHICLE_HYPOTHESIS` | [WISH.md](references/portability/WISH.md) |
+| Škoda Kamiq | Primary vehicle / Phase 10 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [KAMIQ.md](references/portability/vag/KAMIQ.md) |
+| Volkswagen T-Roc | Phase 11 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [TROC.md](references/portability/vag/TROC.md) |
+| Toyota RAV4 | Phase 12 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [RAV4.md](references/portability/toyota/RAV4.md) |
+| Toyota Wish | Phase 13 | `INSUFFICIENT DIRECT EVIDENCE` / `VEHICLE_HYPOTHESIS` | [WISH.md](references/portability/toyota/WISH.md) |
 
 ## Recommended reading sets
 
@@ -50,7 +50,7 @@ KYMCO / SYM 沒有足夠成熟且可歸屬的 canonical evidence；不建立其 
 Read only:
 
 - [SYNTHESIS.md](references/SYNTHESIS.md)
-- [KAMIQ.md](references/portability/KAMIQ.md)
+- [KAMIQ.md](references/portability/vag/KAMIQ.md)
 
 Expand into [references/vag/](references/vag/) only for the specific evidence needed.
 
@@ -75,21 +75,21 @@ Only when explicitly scoped: [SYNTHESIS.md](references/SYNTHESIS.md) and relevan
 Read only:
 
 - [SYNTHESIS.md](references/SYNTHESIS.md)
-- [TROC.md](references/portability/TROC.md)
+- [TROC.md](references/portability/vag/TROC.md)
 
 ### Phase 12 — RAV4 cross-brand
 
 Read only:
 
 - [SYNTHESIS.md](references/SYNTHESIS.md)
-- [RAV4.md](references/portability/RAV4.md)
+- [RAV4.md](references/portability/toyota/RAV4.md)
 
 ### Phase 13 — Wish cross-generation
 
 Read only:
 
 - [SYNTHESIS.md](references/SYNTHESIS.md)
-- [WISH.md](references/portability/WISH.md)
+- [WISH.md](references/portability/toyota/WISH.md)
 
 Wish 的 direct evidence 不足；在 Revisit trigger 前不要重複 GitHub rediscovery。
 
