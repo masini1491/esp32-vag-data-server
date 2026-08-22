@@ -23,3 +23,4 @@
 - Added capability-driven VehicleData architecture.
 - Added Deep Diagnostic / SRS on-demand responsibility model.
 - Clarified that firmware builds do not need to include all brands.
+- Added host-testable generic CAN frame, Board Profile, HardwareConfig, and CAN HAL foundation.
