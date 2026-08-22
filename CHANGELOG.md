@@ -25,3 +25,4 @@
 - Clarified that firmware builds do not need to include all brands.
 - Added host-testable generic CAN frame, Board Profile, HardwareConfig, and CAN HAL foundation.
 - Added deterministic Mock CAN, Fake Clock, and host-side targeted test foundation.
+- Added ESP32-S3 Classic CAN / TWAI backend with Arduino integration boundary.

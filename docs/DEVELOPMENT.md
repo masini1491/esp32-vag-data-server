@@ -4,6 +4,7 @@
 - Phase 1: Board abstraction + HAL + basic TWAI
 - Phase 1A-1: Host-testable HAL / CAN foundation（本輪；不含 TWAI backend）
 - Phase 1A-2: Deterministic Mock CAN / Fake Clock / host tests（本輪；不含 ISO-TP）
+- Phase 1A-3: ESP32-S3 Classic CAN / TWAI backend（本輪；不含 protocol behavior）
 - Phase 2: ISO-TP / DiagnosticTransport boundary
 - Phase 3: Generic OBD-II read-only
 - Phase 4: Generic UDS read-only + ReadOnlyGuard
