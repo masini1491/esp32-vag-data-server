@@ -31,5 +31,6 @@
 - Expanded deterministic Phase 1 CAN foundation tests.
 - Reorganized upstream reference evidence library and added future K-Line/motorcycle portability research references.
 - Added local portability evidence summaries for T-Roc, RAV4 and Wish validation targets.
+- Added local Kamiq primary validation-target evidence summary.
 - Architecture Freeze v0.4.
 - Clarified diagnostic-link / transport extensibility without adding motorcycle support.

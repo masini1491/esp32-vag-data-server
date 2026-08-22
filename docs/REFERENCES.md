@@ -38,11 +38,21 @@ KYMCO / SYM 沒有足夠成熟且可歸屬的 canonical evidence；不建立其 
 
 | Target | Phase | Evidence status | Detailed note |
 |---|---|---|---|
+| Škoda Kamiq | Primary vehicle / Phase 10 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [KAMIQ.md](references/portability/KAMIQ.md) |
 | Volkswagen T-Roc | Phase 11 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [TROC.md](references/portability/TROC.md) |
 | Toyota RAV4 | Phase 12 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [RAV4.md](references/portability/RAV4.md) |
 | Toyota Wish | Phase 13 | `INSUFFICIENT DIRECT EVIDENCE` / `VEHICLE_HYPOTHESIS` | [WISH.md](references/portability/WISH.md) |
 
 ## Recommended reading sets
+
+### Primary vehicle — Kamiq
+
+Read only:
+
+- [SYNTHESIS.md](references/SYNTHESIS.md)
+- [KAMIQ.md](references/portability/KAMIQ.md)
+
+Expand into [references/vag/](references/vag/) only for the specific evidence needed.
 
 ### Phase 2 ISO-TP
 

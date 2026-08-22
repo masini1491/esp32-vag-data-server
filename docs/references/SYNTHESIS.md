@@ -37,11 +37,12 @@ K-Line is `NOT SUPPORTED`。可參考 [OBD9141](kline/OBD9141.md)、[Keyword-Pro
 
 ## Portability validation targets
 
-- **T-Roc:** strong same-VAG upstream evidence；opendbc separates T-Roc and Kamiq platform/identification metadata, while vehicle coverage provides T-Roc signal descriptions. Separate validated Vehicle Profile remains required。
-- **RAV4:** strong Toyota cross-brand evidence；multiple generation/powertrain/security variants and diagnostic styles prove the need for Toyota Brand Layer + Profile Resolver, not one universal RAV4 profile。
-- **Wish:** direct upstream evidence currently insufficient；future work must begin with exact vehicle identification and must never inherit RAV4 assumptions automatically。
+- **Kamiq:** primary implementation / first Vehicle PASS target；cross-source evidence exists, but exact 2024 vehicle behavior remains Pending。
+- **T-Roc:** same-brand VAG portability；strong upstream evidence, but a separate validated Vehicle Profile remains required。
+- **RAV4:** cross-brand Toyota portability plus generation/powertrain Profile Resolver validation；multiple variants prevent one universal profile assumption。
+- **Wish:** weak-evidence Toyota cross-generation validation；future work starts with exact vehicle identification and Unknown/Ambiguous resolver behavior, never inherited RAV4 assumptions。
 
-Validation order remains `Kamiq → T-Roc → RAV4 → Wish`；all three portability targets are `Future / Pending` and `VEHICLE_CONFIRMED = none`。
+Validation order remains `Kamiq → T-Roc → RAV4 → Wish`；Kamiq 與 all three portability targets remain `Pending` and `VEHICLE_CONFIRMED = none`。
 
 ## Revisit triggers
 
