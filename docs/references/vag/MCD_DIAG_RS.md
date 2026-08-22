@@ -1,10 +1,10 @@
 # mcd-diag-rs
 
-Upstream: [bri3d/mcd-diag-rs](https://github.com/bri3d/mcd-diag-rs)  
-Reviewed: 2026-08-22  
-Role: Phase 6 profile/data pipeline  
-Evidence class: `DATA_PIPELINE_REFERENCE`, `PROFILE_BUILDER_REFERENCE`  
-Reuse status: BSD-3-Clause reference；不分發 proprietary data。  
+Upstream: [bri3d/mcd-diag-rs](https://github.com/bri3d/mcd-diag-rs)
+Reviewed: 2026-08-22
+Role: Phase 6 profile/data pipeline
+Evidence class: `DATA_PIPELINE_REFERENCE`, `PROFILE_BUILDER_REFERENCE`
+Reuse status: BSD-3-Clause reference；不分發 proprietary data。
 License / provenance: BSD-3-Clause confirmed from LICENSE.md。
 
 ## Confirmed evidence

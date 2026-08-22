@@ -1,10 +1,10 @@
 # MotoLink
 
-Upstream: [fpoussin/MotoLink](https://github.com/fpoussin/MotoLink)  
-Reviewed: 2026-08-22  
-Role: historical multi-link architecture evidence  
-Evidence class: `HISTORICAL_REFERENCE`, `ARCHITECTURE_REFERENCE`, `REFERENCE_ONLY`  
-Reuse status: GPLv3；no source reuse。  
+Upstream: [fpoussin/MotoLink](https://github.com/fpoussin/MotoLink)
+Reviewed: 2026-08-22
+Role: historical multi-link architecture evidence
+Evidence class: `HISTORICAL_REFERENCE`, `ARCHITECTURE_REFERENCE`, `REFERENCE_ONLY`
+Reuse status: GPLv3；no source reuse。
 License / provenance: GPLv3 confirmed；archived。
 
 ## Confirmed evidence

@@ -1,10 +1,10 @@
 # vehicle_coverage
 
-Upstream: [CanBusHack/vehicle_coverage](https://github.com/CanBusHack/vehicle_coverage)  
-Reviewed: 2026-08-22  
-Role: Kamiq 2024 capability/signal coverage  
-Evidence class: `UPSTREAM_COVERAGE_CONFIRMED`, `REFERENCE_ONLY`  
-Reuse status: no raw list/database redistribution。  
+Upstream: [CanBusHack/vehicle_coverage](https://github.com/CanBusHack/vehicle_coverage)
+Reviewed: 2026-08-22
+Role: Kamiq 2024 capability/signal coverage
+Evidence class: `UPSTREAM_COVERAGE_CONFIRMED`, `REFERENCE_ONLY`
+Reuse status: no raw list/database redistribution。
 License / provenance: no confirmed root LICENSE；coverage files contain CanBusHack copyright notice。
 
 ## Confirmed evidence

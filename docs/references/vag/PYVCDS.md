@@ -1,10 +1,10 @@
 # PyVCDS
 
-Upstream: [baconwaifu/PyVCDS](https://github.com/baconwaifu/PyVCDS)  
-Reviewed: 2026-08-22  
-Role: historical VW diagnostic research workflow  
-Evidence class: `HISTORICAL_REFERENCE`, `REFERENCE_ONLY`  
-Reuse status: no source reuse。  
+Upstream: [baconwaifu/PyVCDS](https://github.com/baconwaifu/PyVCDS)
+Reviewed: 2026-08-22
+Role: historical VW diagnostic research workflow
+Evidence class: `HISTORICAL_REFERENCE`, `REFERENCE_ONLY`
+Reuse status: no source reuse。
 License / provenance: metadata/SPDX 不明，placeholder GPLv2+ wording；需重新確認。
 
 ## Confirmed evidence

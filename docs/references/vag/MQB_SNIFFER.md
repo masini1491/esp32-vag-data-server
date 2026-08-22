@@ -1,10 +1,10 @@
 # MQB-sniffer
 
-Upstream: [mrfixpl/MQB-sniffer](https://github.com/mrfixpl/MQB-sniffer)  
-Reviewed: 2026-08-22  
-Role: read-only VAG reverse-engineering methodology  
-Evidence class: `RESEARCH_METHOD_REFERENCE`, `REFERENCE_ONLY`  
-Reuse status: no source reuse。  
+Upstream: [mrfixpl/MQB-sniffer](https://github.com/mrfixpl/MQB-sniffer)
+Reviewed: 2026-08-22
+Role: read-only VAG reverse-engineering methodology
+Evidence class: `RESEARCH_METHOD_REFERENCE`, `REFERENCE_ONLY`
+Reuse status: no source reuse。
 License / provenance: no clear reusable license confirmed。
 
 ## Confirmed evidence

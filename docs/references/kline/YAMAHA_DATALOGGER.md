@@ -1,10 +1,10 @@
 # Yamaha-DataLogger
 
-Upstream: [terrafirma2021/Yamaha-DataLogger](https://github.com/terrafirma2021/Yamaha-DataLogger)  
-Reviewed: 2026-08-22  
-Role: future ESP32-S3 + motorcycle K-Line architecture pattern  
-Evidence class: `ARCHITECTURE_REFERENCE`, `REFERENCE_ONLY`  
-Reuse status: no source reuse。  
+Upstream: [terrafirma2021/Yamaha-DataLogger](https://github.com/terrafirma2021/Yamaha-DataLogger)
+Reviewed: 2026-08-22
+Role: future ESP32-S3 + motorcycle K-Line architecture pattern
+Evidence class: `ARCHITECTURE_REFERENCE`, `REFERENCE_ONLY`
+Reuse status: no source reuse。
 License / provenance: no confirmed repository LICENSE。
 
 ## Confirmed evidence

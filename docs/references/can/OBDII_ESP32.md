@@ -1,10 +1,10 @@
 # OBDII-ESP32
 
-Upstream: [PouzarA/OBDII-ESP32](https://github.com/PouzarA/OBDII-ESP32)  
-Reviewed: 2026-08-22  
-Role: Phase 2 ISO-TP / Phase 3 OBD-II / host tests  
-Evidence class: `ALGORITHM_REFERENCE`, `TEST_ARCHITECTURE_REFERENCE`  
-Reuse status: MIT；selective reference only，勿複製 TWAI-coupled upper API。  
+Upstream: [PouzarA/OBDII-ESP32](https://github.com/PouzarA/OBDII-ESP32)
+Reviewed: 2026-08-22
+Role: Phase 2 ISO-TP / Phase 3 OBD-II / host tests
+Evidence class: `ALGORITHM_REFERENCE`, `TEST_ARCHITECTURE_REFERENCE`
+Reuse status: MIT；selective reference only，勿複製 TWAI-coupled upper API。
 License / provenance: MIT confirmed from repository LICENSE。
 
 ## Confirmed evidence

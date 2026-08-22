@@ -1,10 +1,10 @@
 # Keyword-Protocol-2000
 
-Upstream: [aster94/Keyword-Protocol-2000](https://github.com/aster94/Keyword-Protocol-2000)  
-Reviewed: 2026-08-22  
-Role: future K-Line/KWP architecture and test reference  
-Evidence class: `ARCHITECTURE_REFERENCE`, `TEST_ARCHITECTURE_REFERENCE`, `REFERENCE_ONLY`  
-Reuse status: GPLv3；no source reuse。  
+Upstream: [aster94/Keyword-Protocol-2000](https://github.com/aster94/Keyword-Protocol-2000)
+Reviewed: 2026-08-22
+Role: future K-Line/KWP architecture and test reference
+Evidence class: `ARCHITECTURE_REFERENCE`, `TEST_ARCHITECTURE_REFERENCE`, `REFERENCE_ONLY`
+Reuse status: GPLv3；no source reuse。
 License / provenance: GPLv3 confirmed。
 
 ## Confirmed evidence

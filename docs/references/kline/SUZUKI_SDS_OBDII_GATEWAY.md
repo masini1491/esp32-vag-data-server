@@ -1,10 +1,10 @@
 # suzuki-sds-obdii-gateway
 
-Upstream: [sunsided/suzuki-sds-obdii-gateway](https://github.com/sunsided/suzuki-sds-obdii-gateway)  
-Reviewed: 2026-08-22  
-Role: future K-Line/CAN gateway and host-test architecture pattern  
-Evidence class: `REFERENCE_PATTERN`, `TEST_ARCHITECTURE_REFERENCE`  
-Reuse status: reference only；no source reuse。  
+Upstream: [sunsided/suzuki-sds-obdii-gateway](https://github.com/sunsided/suzuki-sds-obdii-gateway)
+Reviewed: 2026-08-22
+Role: future K-Line/CAN gateway and host-test architecture pattern
+Evidence class: `REFERENCE_PATTERN`, `TEST_ARCHITECTURE_REFERENCE`
+Reuse status: reference only；no source reuse。
 License / provenance: manifest declares MIT OR Apache-2.0；future reuse前需重查。
 
 ## Confirmed evidence

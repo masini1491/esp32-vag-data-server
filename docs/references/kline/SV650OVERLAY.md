@@ -1,10 +1,10 @@
 # sv650overlay
 
-Upstream: [BananaJoh/sv650overlay](https://github.com/BananaJoh/sv650overlay)  
-Reviewed: 2026-08-22  
-Role: future motorcycle hardware/link evidence  
-Evidence class: `REFERENCE_PATTERN`, `REFERENCE_ONLY`  
-Reuse status: GPLv3；no source reuse。  
+Upstream: [BananaJoh/sv650overlay](https://github.com/BananaJoh/sv650overlay)
+Reviewed: 2026-08-22
+Role: future motorcycle hardware/link evidence
+Evidence class: `REFERENCE_PATTERN`, `REFERENCE_ONLY`
+Reuse status: GPLv3；no source reuse。
 License / provenance: GPLv3 confirmed。
 
 ## Confirmed evidence

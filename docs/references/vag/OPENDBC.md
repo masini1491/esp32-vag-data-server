@@ -1,10 +1,10 @@
 # opendbc
 
-Upstream: [commaai/opendbc](https://github.com/commaai/opendbc)  
-Reviewed: 2026-08-22  
-Role: Phase 9 passive CAN / VAG data reference  
-Evidence class: `DATA_REFERENCE`, `PASSIVE_CAN_REFERENCE`, `VEHICLE_HYPOTHESIS`  
-Reuse status: MIT root reference；individual data provenance/applicability 仍需確認。  
+Upstream: [commaai/opendbc](https://github.com/commaai/opendbc)
+Reviewed: 2026-08-22
+Role: Phase 9 passive CAN / VAG data reference
+Evidence class: `DATA_REFERENCE`, `PASSIVE_CAN_REFERENCE`, `VEHICLE_HYPOTHESIS`
+Reuse status: MIT root reference；individual data provenance/applicability 仍需確認。
 License / provenance: root MIT confirmed；data applicability not automatically established。
 
 ## Confirmed evidence

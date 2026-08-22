@@ -1,10 +1,10 @@
 # OpenHaldex-S3
 
-Upstream: [meatro/OpenHaldex-S3](https://github.com/meatro/OpenHaldex-S3)  
-Reviewed: 2026-08-22  
-Role: ESP32-S3 CAN/TWAI runtime、VAG UDS/ISO-TP patterns  
-Evidence class: `ARCHITECTURE_REFERENCE`, `ALGORITHM_REFERENCE`  
-Reuse status: MIT；selective reference only。  
+Upstream: [meatro/OpenHaldex-S3](https://github.com/meatro/OpenHaldex-S3)
+Reviewed: 2026-08-22
+Role: ESP32-S3 CAN/TWAI runtime、VAG UDS/ISO-TP patterns
+Evidence class: `ARCHITECTURE_REFERENCE`, `ALGORITHM_REFERENCE`
+Reuse status: MIT；selective reference only。
 License / provenance: MIT confirmed。
 
 ## Confirmed evidence
