@@ -35,6 +35,14 @@ Read-only concepts 可參考 OBD PID/VIN/DTC read、UDS `0x22`、`0x19`、`0x3E`
 
 K-Line is `NOT SUPPORTED`。可參考 [OBD9141](kline/OBD9141.md)、[Keyword-Protocol-2000](kline/KEYWORD_PROTOCOL_2000.md)、[sv650overlay](kline/SV650OVERLAY.md)、[Yamaha-DataLogger](kline/YAMAHA_DATALOGGER.md)、[suzuki-sds-obdii-gateway](kline/SUZUKI_SDS_OBDII_GATEWAY.md) 與 [MotoLink](kline/MOTOLINK.md) 的 link portability / testing patterns；不要新增 K-Line implementation phase，不改 `Kamiq → T-Roc → RAV4 → Wish`。
 
+## Portability validation targets
+
+- **T-Roc:** strong same-VAG upstream evidence；opendbc separates T-Roc and Kamiq platform/identification metadata, while vehicle coverage provides T-Roc signal descriptions. Separate validated Vehicle Profile remains required。
+- **RAV4:** strong Toyota cross-brand evidence；multiple generation/powertrain/security variants and diagnostic styles prove the need for Toyota Brand Layer + Profile Resolver, not one universal RAV4 profile。
+- **Wish:** direct upstream evidence currently insufficient；future work must begin with exact vehicle identification and must never inherit RAV4 assumptions automatically。
+
+Validation order remains `Kamiq → T-Roc → RAV4 → Wish`；all three portability targets are `Future / Pending` and `VEHICLE_CONFIRMED = none`。
+
 ## Revisit triggers
 
 優先使用 local summaries。只有在以下情況才重新研究 external source：考慮實際 source reuse 需重新確認 license/provenance、upstream materially changed、實車 evidence 與摘要矛盾、新 brand/model 成為實際 target，或 local evidence 不足以回答具體 implementation decision。

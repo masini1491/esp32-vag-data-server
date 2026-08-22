@@ -34,6 +34,14 @@ All entries below are `NOT SUPPORTED` / future architecture evidence only. No mo
 
 KYMCO / SYM 沒有足夠成熟且可歸屬的 canonical evidence；不建立其 reference note，也不推論其 protocol。
 
+## Portability validation targets
+
+| Target | Phase | Evidence status | Detailed note |
+|---|---|---|---|
+| Volkswagen T-Roc | Phase 11 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [TROC.md](references/portability/TROC.md) |
+| Toyota RAV4 | Phase 12 | `UPSTREAM_COVERAGE_CONFIRMED` / `VEHICLE_HYPOTHESIS` | [RAV4.md](references/portability/RAV4.md) |
+| Toyota Wish | Phase 13 | `INSUFFICIENT DIRECT EVIDENCE` / `VEHICLE_HYPOTHESIS` | [WISH.md](references/portability/WISH.md) |
+
 ## Recommended reading sets
 
 ### Phase 2 ISO-TP
@@ -51,6 +59,29 @@ Read [SYNTHESIS.md](references/SYNTHESIS.md) and only relevant files under [refe
 ### Future K-Line
 
 Only when explicitly scoped: [SYNTHESIS.md](references/SYNTHESIS.md) and relevant files under [references/kline/](references/kline/).
+
+### Phase 11 — T-Roc portability
+
+Read only:
+
+- [SYNTHESIS.md](references/SYNTHESIS.md)
+- [TROC.md](references/portability/TROC.md)
+
+### Phase 12 — RAV4 cross-brand
+
+Read only:
+
+- [SYNTHESIS.md](references/SYNTHESIS.md)
+- [RAV4.md](references/portability/RAV4.md)
+
+### Phase 13 — Wish cross-generation
+
+Read only:
+
+- [SYNTHESIS.md](references/SYNTHESIS.md)
+- [WISH.md](references/portability/WISH.md)
+
+Wish 的 direct evidence 不足；在 Revisit trigger 前不要重複 GitHub rediscovery。
 
 ## Evidence labels
 
