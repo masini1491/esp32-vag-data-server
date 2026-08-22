@@ -4,6 +4,9 @@
 - Exact board: TBD
 - External or onboard Classic CAN transceiver: TBD
 - GPIO: TBD；由 Board Profile / HardwareConfig / HAL 管理
+- Current hardware scope: ESP32-S3 + Classic CAN transceiver
+- ESP32-S3 TWAI scope: Classic CAN
+- Future CAN-FD / Ethernet transport: not part of current hardware scope
 
 ## Expected OBD wiring
 
@@ -16,3 +19,5 @@
 正式汽車電源設計需考慮 fuse、reverse polarity protection、transient/TVS protection 與 automotive-suitable regulation。
 
 以上均非實車 wiring 驗證結果；hardware evidence 維持 Pending。
+
+若未來品牌或車型需要 CAN-FD / Ethernet diagnostics，必須重新進行 hardware capability assessment；本輪不選定 external CAN-FD controller，也不實作 CAN-FD、HSFZ 或 DoIP。

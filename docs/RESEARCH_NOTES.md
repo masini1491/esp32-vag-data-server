@@ -46,3 +46,26 @@
 - Exact passive CAN ID / bit / scaling。
 - OBD pins 6/14 visibility。
 - Actual Kamiq 2024 validation。
+
+## Architecture Research v0.2
+
+### Confirmed architecture decisions
+
+- `CONFIRMED ARCHITECTURE DECISION`: Generic Core 應保持 brand-independent。
+- `CONFIRMED ARCHITECTURE DECISION`: Brand-specific semantics 屬於 Brand Layer / Vehicle Profile。
+- `CONFIRMED ARCHITECTURE DECISION`: Diagnostic protocol 與 diagnostic transport 必須分離責任邊界。
+- `CONFIRMED ARCHITECTURE DECISION`: v1 維持 Classic CAN + ISO-TP + OBD-II/UDS + VAG。
+- `CONFIRMED ARCHITECTURE DECISION`: multi-brand support 僅是 future validation，不是目前支援狀態。
+
+### Future vehicle validation sequence
+
+`Kamiq → T-Roc → RAV4 → Wish`
+
+- Kamiq：第一個完整 Hardware / Vehicle validation target。
+- T-Roc：VAG Brand Layer + second VAG Vehicle Profile portability validation（Future / Pending）。
+- RAV4：Toyota Brand Layer + Profile 的 cross-brand validation（Future / Pending）。
+- Wish：Toyota same-brand / different-generation validation（Future / Pending）。
+
+共同 minimum dataset 為 VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.coolantTemp`、`vehicle.voltage`；optional 為 gear、oilTemp、wheel speeds、steering angle、ACC set speed。不存在的 capability 應標示 `unsupported` / `unavailable`，不得以假值代替。
+
+所有項目直到取得實車 evidence 前均維持 `Pending`，不得宣稱 T-Roc、RAV4 或 Wish supported。

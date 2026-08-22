@@ -6,6 +6,8 @@
 
 本專案規劃建立一個以 ESP32-S3 family 為平台的 Volkswagen Group 唯讀 vehicle data server，將 Vehicle CAN 的被動與診斷資料正規化為 `VehicleData`，供 BLE、Wi-Fi Web UI 與 Logger 使用。
 
+本專案目前仍以 VAG / Kamiq 為第一目標。Generic Core 刻意分離 transport、diagnostic protocol、brand semantics、Vehicle Profile 與 `VehicleData`；未來可能透過 Brand Layer / Vehicle Profile 擴充其他品牌，但目前不宣稱 multi-brand support。
+
 ## 初始研究／驗證車型
 
 Škoda Kamiq 2024 facelift（MQB-A0 family）是初始研究／驗證目標。本專案架構不限定 Kamiq-only，目前也不宣稱已支援 Kamiq 2024。
@@ -118,7 +120,7 @@ Vehicle CAN
 → BLE / Web / Logger
 ```
 
-Realtime clients 預計優先讀取 `VehicleData Cache`，不因為瀏覽器 refresh 就直接重複 query ECU。詳見 [Architecture Freeze v0.1](docs/ARCHITECTURE.md) 與 [Read-only policy](docs/READ_ONLY_POLICY.md)。
+Realtime clients 預計優先讀取 `VehicleData Cache`，不因為瀏覽器 refresh 就直接重複 query ECU。詳見 [Architecture Freeze v0.2](docs/ARCHITECTURE.md)、[Read-only policy](docs/READ_ONLY_POLICY.md) 與 [Vehicle Profile](docs/VEHICLE_PROFILE.md)。
 
 ## 目前開發狀態
 
