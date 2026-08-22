@@ -1,6 +1,6 @@
 # ESP32 VAG Data Server
 
-**專案狀態：** Architecture Freeze v0.3 完成／Phase 1 software foundation PASS
+**專案狀態：** Architecture Freeze v0.4 完成／Phase 1 software foundation PASS
 
 ## 專案目的
 
@@ -9,6 +9,8 @@
 本專案目前仍以 VAG / Kamiq 為第一目標。Generic Core 刻意分離 transport、diagnostic protocol、brand semantics、Vehicle Profile 與 `VehicleData`；未來可能透過 Brand Layer / Vehicle Profile 擴充其他品牌，但目前不宣稱 multi-brand support。
 
 官方 implementation target 仍為 VAG；其他 contributor 或 fork 未來可保留 Generic Core，自行加入 Brand Layer / Vehicle Profile。單一 firmware build 不要求包含所有品牌。
+
+v1 concrete path 維持 ESP32-S3 + Classic CAN/TWAI + ISO-TP + OBD-II/UDS + VAG。Architecture 允許 future diagnostic-link extensions，但目前不支援 K-Line、motorcycle diagnostics 或任何 motorcycle brand/model。
 
 ## 初始研究／驗證車型
 
@@ -135,7 +137,7 @@ Vehicle
 → BLE / Web / Logger / future clients
 ```
 
-Realtime clients 預計優先讀取 `VehicleData Cache`，不因為瀏覽器 refresh 就直接重複 query ECU。詳見 [Architecture Freeze v0.3](docs/ARCHITECTURE.md)、[Read-only policy](docs/READ_ONLY_POLICY.md) 與 [Vehicle Profile](docs/VEHICLE_PROFILE.md)。
+Realtime clients 預計優先讀取 `VehicleData Cache`，不因為瀏覽器 refresh 就直接重複 query ECU。詳見 [Architecture Freeze v0.4](docs/ARCHITECTURE.md)、[Read-only policy](docs/READ_ONLY_POLICY.md) 與 [Vehicle Profile](docs/VEHICLE_PROFILE.md)。
 
 ## 目前開發狀態
 

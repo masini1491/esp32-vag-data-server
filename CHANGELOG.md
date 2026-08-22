@@ -29,3 +29,5 @@
 - Consolidated Phase 1 foundation audit and implementation gate status.
 - Added minimal GitHub Actions host test CI and verified a passing run.
 - Expanded deterministic Phase 1 CAN foundation tests.
+- Architecture Freeze v0.4.
+- Clarified diagnostic-link / transport extensibility without adding motorcycle support.

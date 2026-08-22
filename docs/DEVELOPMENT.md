@@ -1,6 +1,6 @@
 # Development Roadmap
 
-- Phase 0: Repository / Architecture Freeze v0.3
+- Phase 0: Repository / Architecture Freeze v0.4
 - Phase 1: Board abstraction + HAL + basic TWAI
 - Phase 1A-1: Host-testable HAL / CAN foundation（本輪；不含 TWAI backend）
 - Phase 1A-2: Deterministic Mock CAN / Fake Clock / host tests（本輪；不含 ISO-TP）
@@ -59,3 +59,5 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 - Vehicle PASS：Pending。
 
 這代表 Phase 1 software foundation 可交給下一階段 ISO-TP implementation；不代表實體 TWAI receive 或 vehicle validation 已完成。
+
+Phase 2 v1 implementation 是 ISO-TP over Classic CAN；future non-CAN transports 僅為 architecture boundaries，不新增 K-Line implementation phase，也不改變 Kamiq → T-Roc → RAV4 → Wish validation sequence。

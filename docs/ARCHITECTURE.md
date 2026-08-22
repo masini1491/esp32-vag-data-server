@@ -1,4 +1,4 @@
-# Architecture Freeze v0.3
+# Architecture Freeze v0.4
 
 本文件凍結概念責任邊界，不代表 firmware 功能已實作。
 
@@ -13,12 +13,17 @@ Vehicle
 │
 └─ Diagnostic Network
          ↓
-   Diagnostic Transport
-   └─ ISO-TP over Classic CAN（v1）
+   Vehicle Physical / Link
+   ├─ Classic CAN / ESP32 TWAI（v1）
+   └─ future non-CAN link（conceptual boundary only）
          ↓
-   Diagnostic Protocol
-   ├─ OBD-II
-   └─ UDS
+   Diagnostic Framing / Transport
+   ├─ ISO-TP（v1）
+   └─ future transport family（conceptual boundary only）
+         ↓
+   Diagnostic Service Semantics
+   ├─ OBD-II / UDS（v1）
+   └─ future brand/profile-specific semantics
          ↓
    Brand Extension Interface
          ↓
@@ -37,11 +42,41 @@ Vehicle
    BLE / Web / Logger / future clients
 ```
 
-硬體邊界：`Board Profile → HardwareConfig → HAL → CAN/TWAI`。所有 diagnostic TX：`→ ReadOnlyGuard`。
+v1 硬體邊界：`Board Profile → HardwareConfig → CAN HAL → ESP32 TWAI`。所有 active diagnostic TX 必須經 `ReadOnlyGuard` / diagnostic policy gate。
+
+## Diagnostic Link / Transport extensibility
+
+Architecture 將 vehicle physical/link、diagnostic framing/transport、diagnostic service semantics 與 Brand Layer / Vehicle Profile 分開。這是 conceptual boundary only；本文件不決定 C++ interface、method signature、ownership、callback、queue 或 async model。
+
+目前唯一 official implementation path 維持：
+
+```text
+ESP32-S3
+→ Classic CAN / TWAI
+→ ISO-TP
+→ Generic OBD-II / UDS
+→ VAG Brand Layer / VAG Vehicle Profile
+→ VehicleData
+```
+
+Future transport-extensibility evidence 顯示，部分診斷系統可能採用保守稱為 `K-Line / ISO 9141 / ISO 14230 / KWP2000 family` 的路徑，並透過 UART + K-Line PHY 與 ECU 通訊。此處只證明 future link 不一定是 CAN，不宣稱任何 motorcycle brand/model 已支援，也不凍結精確 OSI layer classification：
+
+```text
+K-Line（future / NOT SUPPORTED）
+→ UART + K-Line PHY
+→ ISO 9141 / ISO 14230 / KWP2000 family
+→ brand/profile-specific diagnostic semantics
+→ Vehicle Profile
+→ VehicleData
+```
+
+Diagnostic/application upper layers 不得要求所有 backend 暴露 CAN ID、CAN frame、DLC、TWAI type 或 CAN-specific routing。ISO-TP implementation 本身可以依賴 generic CAN frame 與 TX/RX CAN IDs，但 OBD-II、UDS、future diagnostic service、VehicleData、BLE、Web 與 Logger 不應被迫依賴 CAN-specific implementation types。OBD-II / UDS 是 VAG v1 paths，不是所有 future Brand Layer 的 universal requirement。
+
+既有 `Board Profile → HardwareConfig → CanHal → MockCan / Esp32TwaiCan` 保持有效；不得為 future K-Line 將 CanHal 擴張成巨大 generic bus interface。若未來有 evidence，non-CAN link 應以平行 hardware/link backend 加入，而非重寫 Phase 1 CAN foundation。
 
 ## Generic Core 與 Brand Extension
 
-Generic Core 包含 HAL、CAN/TWAI、ISO-TP、Generic OBD-II / UDS、ReadOnlyGuard、VehicleData、Scheduler、Storage、BLE、Web 與 Logger。它不得知道任何 VAG CAN ID、ECU address、DID、MQB/Kamiq semantics，或其他品牌-specific constants。
+Generic Core 包含可重用的 HAL、CAN/TWAI、diagnostic link/transport implementations、Generic OBD-II / UDS、ReadOnlyGuard、VehicleData、Scheduler、Storage、BLE、Web 與 Logger。CAN abstraction 仍是 v1 Generic Core infrastructure；但 normalized application/data layers 不得假設 vehicle diagnostic link 一定為 CAN。Generic Core 不得知道任何 VAG CAN ID、ECU address、DID、MQB/Kamiq semantics，或其他品牌-specific constants。
 
 Brand Layer 負責 brand-specific vehicle identification strategy、ECU discovery/routing semantics、diagnostic/passive CAN interpretation、raw-to-normalized mapping，以及選擇適當 Vehicle Profile。
 
@@ -122,11 +157,11 @@ Web / BLE / client
   ↓ capability check
 Scheduler / on-demand request
   ↓
-ReadOnlyGuard
+ReadOnlyGuard / diagnostic policy gate
   ↓
-UDS / OBD diagnostic path
+diagnostic service
   ↓
-ECU → decode → VehicleData / diagnostic result
+transport / link → ECU → decode → VehicleData / diagnostic result
 ```
 
 Scheduler 未來需區分 realtime、periodic、startup、on-demand、unsupported；本輪不實作。
@@ -138,5 +173,7 @@ Scheduler 未來需區分 realtime、periodic、startup、on-demand、unsupporte
 3. Client 不得直接知道 brand-specific raw diagnostic mapping。
 4. 所有 diagnostic TX 永遠經 ReadOnlyGuard。
 5. Profile implementation 應支持 composition/reuse，但 profile file/storage format 保持 undecided。
+6. Diagnostic/application upper layers 不得直接依賴 CAN/TWAI-specific types；future non-CAN path 亦不得繞過 ReadOnlyGuard。
+7. K-Line / motorcycle diagnostics 僅為 Future / out-of-scope extension evidence，不得據此加入 speculative implementation 或 support claim。
 
-v1 仍限定 ESP32 TWAI / Classic CAN → ISO-TP → OBD-II / UDS → VAG。HSFZ、DoIP、Ethernet diagnostics、CAN-FD、BrandAdapter、Profile Resolver、Signal Registry 與 firmware implementation 均為本輪 non-goals。
+v1 仍限定 ESP32 TWAI / Classic CAN → ISO-TP → OBD-II / UDS → VAG。K-Line、ISO 9141、ISO 14230、KWP2000、motorcycle support、HSFZ、DoIP、Ethernet diagnostics、CAN-FD、BrandAdapter、Profile Resolver 與 Signal Registry implementation 均為本輪 non-goals。

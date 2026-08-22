@@ -31,6 +31,8 @@ Generic Core 必須保持 brand-independent；VAG-specific routing、CAN ID、DI
 
 單一 firmware build 不要求包含所有品牌；Brand Profile Set、Profile Resolver、Active Vehicle Profile 與 capability state 是 architecture boundaries，不在文件階段建立 implementation。Optional / Deep Diagnostic capability 必須顯式標示 `unsupported`、`unavailable` 或 `pending` / `unknown`，不得以假值代替；Deep Diagnostic 預設 on-demand，所有 diagnostic TX 永遠經 `ReadOnlyGuard`。
 
+Diagnostic/application upper layers 不得假設所有 vehicle link 都是 CAN，亦不得直接依賴 CAN/TWAI-specific types；ISO-TP over Classic CAN 是 v1 concrete path，不是唯一 future transport。Future non-CAN evidence 不授權自行實作 K-Line 或 motorcycle support，且任何 non-CAN diagnostic TX 同樣不得繞過 `ReadOnlyGuard`。
+
 ## Read-only
 
 不得引入 coding、adaptation、clear DTC、output tests、security access、flashing 或 actuator control。任何 diagnostic TX path 未來都必須經 `ReadOnlyGuard`。
