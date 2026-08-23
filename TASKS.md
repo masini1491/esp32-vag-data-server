@@ -2,6 +2,12 @@
 
 本檔案是 ChatGPT／Codex 共用的暫存工作佇列，只保留尚未完成的工作。正式規格、`AGENTS.md`、architecture、security policy、protocol evidence 與其他 source of truth 優先於本檔案。
 
+## ChatGPT GitHub write boundary
+
+- ChatGPT 對本 repository 的 GitHub 操作僅可建立、更新或刪除根目錄 `TASKS.md`。
+- 除 `TASKS.md` 外，repository 其他檔案對 ChatGPT 一律唯讀；ChatGPT 可讀取、分析、review、規劃與產生 Codex Prompt，但不得直接修改、建立、刪除或提交其他 repository 檔案。
+- 實際 source code、文件、workflow、`AGENTS.md` 等修改應交由使用者當次明確授權的 Codex 工作處理，除非使用者日後明確變更此限制。
+
 Codex 不得因為看到本檔案就自行處理所有項目；每次只執行使用者當次明確授權的 scope。工作成功完成並驗證後，應移除或更新對應項目；沒有任何未完成工作時刪除本檔案。
 
 ## P0 — Phase 1 hardening prerequisite
