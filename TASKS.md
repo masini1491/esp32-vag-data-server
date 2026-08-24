@@ -151,6 +151,12 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 - [ ] **建立最小 RX overflow observability**：目前 TWAI 使用 accept-all 且 default RX queue 很小，alerts 關閉。ISO-TP 前至少要能辨識 RX queue full / FIFO overrun / BUS_OFF 等關鍵狀態，並決定合理 queue sizing / drain strategy；不得因本項提前實作完整 FreeRTOS scheduler 或 Phase 2 concurrency architecture。
 - [ ] **Phase 1 hardening 後重新取得 CI / compile evidence**：host tests 與 ESP32-S3 backend compile 都要在 hardening 後重新驗證，並以新的 commit/run 作為 Phase 1 PASS evidence；不要沿用早於 edge-case hardening 的舊 CI run。
 
+## Project state / validation documentation
+
+- [ ] **建立 `CODEX_PROGRESS.md` 作為精簡歷史 project-state 摘要**：只保存有價值的 phase/milestone、重大決策、重要 defect/architecture feedback、重要 validation/Pending 狀態；不是 active queue，不逐筆複製 commit，也不保存完整已完成 Prompt。詳細修改仍以 Git history 為準。
+- [ ] **建立 `VALIDATION.md` 作為 current validation authority**：明確區分 Software / Host Test / ESP32 Compile / CI / Bench / Hardware / Vehicle 等 validation 層級，保存可重現 evidence、tested commit/run/toolchain/FQBN 與 Pending / Revalidation Required 狀態。Historical evidence 可保留，但若已被新 evidence 推翻或不足，必須清楚標示 Historical / Superseded / Revalidation Required。
+- [ ] **在 `AGENTS.md` 固化檔案角色與更新門檻**：`TASKS.md` 是唯一 active unfinished/executable queue；`CODEX_PROGRESS.md` 是 human-readable history/project-state；`VALIDATION.md` 是 validation contract/evidence/current Pending authority；`docs/DEVELOPMENT.md` 是 roadmap/phase definitions；`CHANGELOG.md` 是 release/change summary；Git history 是實際修改最終權威。只有 material project-state、validation 或 Pending 變更才更新 progress/validation。**目前不要建立 `CODEX_TASKS.md`**；等未來真的有值得永久保存的 archived Prompt/specification series 再評估。
+
 ## Deferred
 
 - [ ] **64-bit monotonic timestamp** — Deferred：目前 `frame.timestamp` 使用 Arduino `millis()`；長時間 uptime 約 49.7 天 rollover 的問題留到真正需要 frame freshness / long-running VehicleData semantics 時處理。Phase 2 timeout 優先使用獨立 `Clock` abstraction。
@@ -163,6 +169,110 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 以下 Prompt 是為上述未完成項目預先保存的執行方案。**每次只能在使用者明確授權該 Stage 後執行該 Stage；不得因為讀到後續 Stage 就提前處理。** 每個 Stage 都繼承本檔案前面的 remote-sync bootstrap、patch/validation、queue lifecycle 與 short-launch 共通規則；Stage Prompt 不重複這些內容。
 
+## Stage 1B — Project state / validation 記錄架構
+
+**推薦模型：** Luna  
+**推理強度：** Low  
+**推薦理由：** 純文件角色建立與現有 evidence 整理；沒有 source behavior 修改，規則與輸出結構已明確。  
+**是否值得先用較便宜模型做前置蒐證：** 否；Luna 已是最低合理成本。只需讀現有正式文件與必要 Git evidence，不做 repository-wide research。  
+**Context 建議：** Level 0→2；`AGENTS.md`、`TASKS.md`、`CHANGELOG.md`、`docs/DEVELOPMENT.md`、README、現有 workflow/CI evidence；只有為確認重要 milestone/commit 時才精準讀 Git history。  
+**Execution mode：** Focused docs-only state-model patch。  
+**Dependency / 觸發條件：** Stage 1 已 PASS；本 Stage 應在 Stage 2 前完成，讓後續 compile/hardening evidence 有正式落點。  
+**Escalation 條件：** 若現有正式文件對 validation authority 或 phase status 有無法用最小 docs patch 化解的實質衝突，STOP 並回報；不要自行升模型或重寫 architecture。
+
+### Codex Prompt
+
+```text
+本次只執行 Stage 1B：建立 project state / validation 記錄架構。不要執行 Stage 2+，不要修改 source code、tests、workflow 或 build layout，也不要開始重新編譯／重跑 CI 來製造新 evidence。
+
+先依 AGENTS.md / TASKS.md 完成 remote-sync bootstrap，再讀：
+- AGENTS.md
+- TASKS.md
+- CHANGELOG.md
+- docs/DEVELOPMENT.md
+- README.md 中與 Phase 1 / validation 有關的必要段落
+- 現有 workflow / CI 記錄只讀必要範圍
+- 只有為確認重要 milestone / tested commit / run 時，才精準讀必要 Git history；不要做 repository-wide history dump
+
+工作 A — 建立 CODEX_PROGRESS.md
+建立 root `CODEX_PROGRESS.md`，定位為 human-readable Historical Progress / Project State Summary，不是 active queue。
+
+內容應精簡，只保存：
+- 重要 Phase / milestone 與目前 project-state。
+- 已凍結或具有長期影響的 architecture / read-only / portability 決策。
+- 對後續開發有價值的重大 defect、architecture feedback 或 revalidation 事件。
+- 重要 validation / Pending 狀態的摘要，詳細 current authority 指向 VALIDATION.md。
+
+禁止：
+- 不逐筆複製 Git commit。
+- 不把已完成 TASKS / Stage Prompt 整段搬進去。
+- 不把本檔變成 changelog 或 active TODO。
+- 詳細修改與完成歷程仍以 Git history 為準。
+
+工作 B — 建立 VALIDATION.md
+建立 root `VALIDATION.md`，定位為 validation contract + evidence + current Pending state 的權威文件，不是 task queue。
+
+至少區分：
+- Software / Static
+- Host Test
+- ESP32 Compile
+- CI
+- Bench
+- Hardware
+- Vehicle
+
+對每個有 evidence 的層級盡量記錄可重現資訊，例如：
+- status
+- tested commit SHA
+- toolchain/version
+- board/FQBN
+- exact command 或 workflow/run（若現有 evidence 支援）
+- remaining Pending / Revalidation Required
+
+重要：目前 TASKS 已明確指出 Arduino build-layout / backend compile evidence gap，因此舊的「ESP32 Compile PASS」不得被當成目前已證明真正 TWAI backend 參與 standard Arduino build 的最終 evidence。除非 repository 現有資料已能直接證明相反，否則應清楚標示為 Historical / Revalidation Required / Pending，等待 Stage 2 / Stage 5 取得新的 backend compile evidence。
+
+Bench / Hardware / Vehicle 若沒有實體 evidence 必須保持 Pending；不得由 software/compile PASS 推導成 hardware PASS。
+
+Historical evidence 可以保留，但若被較新的 evidence 或 current known gap supersede，必須明確標示，不可讓讀者誤認為 current PASS。
+
+工作 C — 更新 AGENTS.md 的檔案角色規則
+以精簡永久規則加入：
+- AGENTS.md = 永久工作規則。
+- TASKS.md = 唯一 active unfinished work / executable scoped Prompt queue。
+- CODEX_PROGRESS.md = human-readable 歷史 / project-state 摘要，不是 active queue。
+- VALIDATION.md = validation contract / evidence / current Pending authority，不是 task queue。
+- docs/DEVELOPMENT.md = roadmap / phase definitions，不作詳細 validation evidence ledger。
+- CHANGELOG.md = release/change summary，不作 active queue 或 validation authority。
+- Git history = 實際完成修改的最終權威。
+- 只有 material project-state、重要 validation 或 Pending 狀態實質變更時，才更新 CODEX_PROGRESS.md / VALIDATION.md；純 queue bookkeeping、wording、排序、格式或小 maintenance 不應把歷程文件寫胖。
+- 目前不要建立 CODEX_TASKS.md。未來只有真的累積值得永久保留的 archived Prompt/specification series 時，才另行評估；若未來建立，它只能是 historical specification/index，不得成為第二個 active queue。
+
+工作 D — 最小一致性修正
+若 README / docs/DEVELOPMENT.md 目前把 Phase 1 / ESP32 backend compile 描述成已完全通過，而這與 TASKS 中已知的 build-layout evidence gap 明顯衝突，可做**最小 docs-only wording 修正**：例如標示 Phase 1 hardening / revalidation in progress，並指向 VALIDATION.md。不要重寫 roadmap、architecture 或 CHANGELOG。
+
+Validation：
+- `git diff --check`。
+- review diff，確認只改必要文件；不得修改 source、tests、workflow、build layout。
+- 確認 TASKS / AGENTS / CODEX_PROGRESS / VALIDATION / DEVELOPMENT / CHANGELOG 的角色沒有形成兩個 active queue 或兩個互相衝突的 current validation authority。
+- 確認沒有把舊 software/compile evidence 誇大成 Bench / Hardware / Vehicle PASS。
+
+成功後同步更新 TASKS.md：
+- 移除「建立 CODEX_PROGRESS.md」task。
+- 移除「建立 VALIDATION.md」task。
+- 移除「在 AGENTS.md 固化檔案角色與更新門檻」task。
+- 移除整個 Stage 1B Prompt。
+- 保留 Stage 2～5、P0/P1/P2 與 Deferred 其他 unfinished work。
+
+最後 commit 並 push origin/main。回報使用繁體中文，列出：
+- baseline HEAD
+- 建立/修改檔案
+- 各檔案角色
+- current validation baseline（特別是 ESP32 backend compile / Hardware / Vehicle）
+- validation
+- TASKS cleanup
+- final commit SHA / push result
+```
+
 ## Stage 2 — Arduino build layout 與可重現 ESP32 backend compile
 
 **推薦模型：** Luna  
@@ -171,7 +281,7 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 **是否值得先用較便宜模型做前置蒐證：** 否；ChatGPT 已完成主要前置蒐證。先由 Luna 用 repository/本機 toolchain 證實，不重新做大範圍 web research。  
 **Context 建議：** Level 0→3；先讀 root layout、`src/src.ino`、直接相關 source/header、現有 build/CI 文件。  
 **Execution mode：** Evidence → Root Cause → minimal layout patch → reproducible compile。  
-**Dependency / 觸發條件：** Stage 1 PASS。  
+**Dependency / 觸發條件：** Stage 1 + Stage 1B PASS。  
 **Escalation 條件：** 若最小修正會迫使大規模 build-system 重設計、跨 framework 遷移或無法取得足夠 build evidence，STOP 並回報；不要自行升模型。
 
 ### Codex Prompt
@@ -316,7 +426,7 @@ Validation：
 **是否值得先用較便宜模型做前置蒐證：** 否；前面 Stage 已提供 evidence。  
 **Context 建議：** Level 0→3；TASKS、AGENTS、host tests/workflow、build layout、DEVELOPMENT/README 中 Phase 1 status。  
 **Execution mode：** Validation-first consolidation；禁止新增功能。  
-**Dependency / 觸發條件：** Stage 1～4 PASS；若 Stage 4B 曾被觸發，則 Stage 4B 也必須 PASS 或其剩餘 blocker 已被明確 Deferred。  
+**Dependency / 觸發條件：** Stage 1 + Stage 1B + Stage 2～4 PASS；若 Stage 4B 曾被觸發，則 Stage 4B 也必須 PASS 或其剩餘 blocker 已被明確 Deferred。  
 **Escalation 條件：** 若 CI/build 問題演變為大型 toolchain migration、複雜 workflow architecture 或與 product logic 無關的 infra 問題，STOP 並保留 Blocked/Deferred，不自行升模型。
 
 ### Codex Prompt
