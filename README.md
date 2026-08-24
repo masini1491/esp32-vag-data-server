@@ -22,7 +22,7 @@ v1 concrete path 維持 ESP32-S3 + Classic CAN/TWAI + ISO-TP + OBD-II/UDS + VAG�
 - `Board Profile → HardwareConfig → HAL` abstraction
 - deterministic Mock CAN / Fake Clock host-test foundation
 - ESP32-S3 Classic CAN / TWAI backend
-- ESP32 generic S3 compile validation
+- ESP32 generic S3 compile validation（historical；TWAI backend participation revalidation required）
 - GitHub Actions host compile / test CI
 - CAN foundation edge-case regression tests
 
@@ -106,7 +106,7 @@ HUD 不屬於本 Repository；未來會是另一個 client project。
 - CAN transceiver：TBD
 - GPIO 配置：TBD
 
-所有 GPIO 與 board-specific capability 經由 `Board Profile → HardwareConfig → HAL` 管理，不由 protocol/application layer 硬編。ESP32-S3 TWAI backend 已完成 compile validation，但 exact board、transceiver、GPIO 與實體 CAN hardware validation 仍為 TBD / Pending。
+所有 GPIO 與 board-specific capability 經由 `Board Profile → HardwareConfig → HAL` 管理，不由 protocol/application layer 硬編。ESP32-S3 TWAI backend 有 historical compile evidence，但因 build-layout gap 仍需重新驗證其確實參與 standard Arduino build；exact board、transceiver、GPIO 與實體 CAN hardware validation 仍為 TBD / Pending。詳見 `VALIDATION.md`。
 
 ## 唯讀範圍與安全邊界
 

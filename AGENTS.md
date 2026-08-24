@@ -41,6 +41,18 @@
 - UI、network、storage clients 依賴 VehicleData／application-facing interface；核心協議不得反向依賴 client。避免不必要 global mutable state 與 platform singleton，以維持 host testing／dependency injection 能力。
 - 等 ISO-TP → OBD／UDS → Brand Layer → Vehicle Profile → VehicleData 的實際資料流穩定後，再評估 library extraction；目前不要建立 `library.properties`、package、另一個 repository、semantic versioning 或未使用的抽象層。
 
+## Repository file roles and update thresholds
+
+- `AGENTS.md` 是永久工作規則。
+- `TASKS.md` 是唯一 active unfinished work／executable scoped Prompt queue。
+- `CODEX_PROGRESS.md` 是 human-readable 歷史／project-state 摘要，不是 active queue。
+- `VALIDATION.md` 是 validation contract、evidence 與 current Pending authority，不是 task queue。
+- `docs/DEVELOPMENT.md` 是 roadmap／phase definitions，不作詳細 validation evidence ledger。
+- `CHANGELOG.md` 是 release／change summary，不作 active queue 或 validation authority。
+- Git history 是實際完成修改的最終權威。
+- 只有 material project-state、重要 validation 或 Pending 狀態實質變更時，才更新 `CODEX_PROGRESS.md`／`VALIDATION.md`；純 queue bookkeeping、wording、排序、格式或小 maintenance 不應把歷程文件寫胖。
+- 目前不要建立 `CODEX_TASKS.md`。未來只有真的累積值得永久保留的 archived Prompt/specification series 時，才另行評估；若建立，只能是 historical specification/index，不得成為第二個 active queue。
+
 ## Repository reading and evidence
 
 採 progressive expansion：Level 0（diff/error/log/evidence）→ Level 1（direct symbol）→ Level 2（caller/callee）→ Level 3（完整相關檔案）→ Level 4（module/directory）→ Level 5（repository-wide）。只有上一級不足時才擴大。
