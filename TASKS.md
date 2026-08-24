@@ -182,12 +182,10 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 - [ ] **決定並實作 RTR policy**：目前 RX 會丟失 TWAI RTR semantics。Phase 2 ISO-TP 前，明確選擇保留 remote-frame metadata 或在 HAL 邊界 reject/drop RTR；不可讓 RTR 偽裝成一般 data frame。
 - [ ] **修正 host test helper malformed-input safety**：`makeFrame()` 不得把超過 8 bytes 的 initializer list 複製進固定 payload；`sameFrame()` 不得在 invalid `length > 8` 時形成 out-of-range iterator。加入 malformed-frame regression coverage。
 - [ ] **同步 MockCan lifecycle contract**：`stop()` / reinitialize 後不得保留與 real TWAI lifecycle 不一致的 stale RX frame；MockCan 對 invalid frame 的 send behavior 應與 real HAL contract 一致。
-- [ ] **釐清 BUS_OFF stop status semantics**：ESP-IDF 在 BUS_OFF 可 uninstall，但 `twai_stop()` 只接受 RUNNING。若 cleanup 實際成功，不應用誤導性的 `NotInitialized` 表示整體 stop 失敗。只做最小 status 修正；不要提前建立 speculative recovery state machine。
+- [ ] **釐清 TWAI stop / cleanup / reinitialize lifecycle semantics**：ESP-IDF 在 BUS_OFF 可 uninstall，但 `twai_stop()` 只接受 RUNNING。若 cleanup 實際成功，不應用誤導性的 `NotInitialized` 表示整體 stop 失敗；若 uninstall / cleanup 真正失敗，wrapper 不得無條件把 `installed_` / `started_` 宣稱清空，reinitialize 也不得忽略 cleanup failure 後繼續 install。只做最小 lifecycle / status invariant 修正；不要提前建立 speculative recovery state machine。
 - [ ] **建立最小 RX overflow observability**：目前 TWAI 使用 accept-all 且 default RX queue 很小，alerts 關閉。ISO-TP 前至少要能辨識 RX queue full / FIFO overrun / BUS_OFF 等關鍵狀態，並決定合理 queue sizing / drain strategy；不得因本項提前實作完整 FreeRTOS scheduler 或 Phase 2 concurrency architecture。
+- [ ] **釐清 CAN TX acceptance / completion / backpressure contract**：目前 `twai_transmit(..., 0)` 的 `ESP_OK` 只代表 frame 已 accepted / queued 或開始 transmission，不等同 on-wire success。Phase 2 ISO-TP 前必須明確定義 `CanHal::send() == Ok` 的語意，並讓 TX queue full、post-enqueue TX failure、BUS_OFF 等至少具有足夠且不誤導 upper layer 的 status / observability contract。不要因此提前建立完整 TX callback framework、FreeRTOS TX task、async completion system 或 ISO-TP scheduler。
 - [ ] **Phase 1 hardening 後重新取得 CI / compile evidence**：host tests 與 ESP32-S3 backend compile 都要在 hardening 後重新驗證，並以新的 commit/run 作為 Phase 1 PASS evidence；不要沿用早於 edge-case hardening 的舊 CI run。
-
-## Project state / validation documentation
-
 
 ## Deferred
 
@@ -287,7 +285,7 @@ Validation：
 **Context 建議：** Level 0→3；`esp32_twai_can.*`、CanFrame/CanStatus、HardwareConfig、直接 tests/build evidence；必要時精準讀對應 ESP-IDF TWAI source。  
 **Execution mode：** Focused HAL patch；禁止提前進 Phase 2 concurrency architecture。  
 **Dependency / 觸發條件：** Stage 2 + Stage 3 PASS。  
-**Escalation 條件：** 若 BUS_OFF / RX overflow 無法以最小 HAL patch 完成，而實際需要 runtime state machine、FreeRTOS concurrency/backpressure 或 ISO-TP-aware scheduling，STOP 並保存 evidence；建議下一輪考慮 Stage 4B，但由使用者決定模型與強度。
+**Escalation 條件：** 若 TWAI lifecycle、RX overflow 或 TX completion/backpressure 無法以最小 HAL/contract patch 完成，而實際需要 runtime state machine、FreeRTOS concurrency/backpressure、async TX completion 或 ISO-TP-aware scheduling，STOP 並保存 evidence；建議下一輪考慮 Stage 4B，但由使用者決定模型與強度。
 
 ### Codex Prompt
 
@@ -298,17 +296,18 @@ Validation：
 1. Classic CAN RX DLC > 8：在 repository boundary 安全 reject/drop malformed/non-compliant frame，任何 copy 前先確保不會超過 8-byte buffer；不得靜默 clamp 後交給未來 ISO-TP 當正常 frame。
 2. `Esp32TwaiCan` ownership：禁止不安全 copy/move，避免多 wrapper 同時聲稱擁有 legacy global TWAI driver。
 3. RTR policy：對 v1 ISO-TP path 明確 reject/drop RTR 或以最小方式保留 metadata；不可把 RTR 偽裝成普通 data frame。優先採最小且不污染 upper layer 的方案。
-4. BUS_OFF stop status semantics：ESP-IDF BUS_OFF 可 uninstall、`twai_stop()` 只接受 RUNNING。若 cleanup 實際成功，避免回傳誤導性 failure。只修 status/cleanup semantics，不建立 speculative recovery state machine。
+4. TWAI stop / cleanup / reinitialize lifecycle semantics：ESP-IDF BUS_OFF 可 uninstall、`twai_stop()` 只接受 RUNNING。若 cleanup 實際成功，避免回傳誤導性 failure；若 uninstall / cleanup 真正失敗，不得無條件把 wrapper ownership state 清空，也不得在 reinitialize 時忽略 cleanup failure 後繼續 install。只修最小 lifecycle / status invariant，不建立 speculative recovery state machine。
 5. 最小 RX overflow observability：至少能辨識或取得 RX queue full / FIFO overrun / BUS_OFF 關鍵 evidence，並決定合理的 queue sizing / drain baseline。不要因此建立完整 FreeRTOS scheduler、background diagnostic task 或 ISO-TP concurrency architecture。
+6. CAN TX acceptance / completion / backpressure contract：明確定義 `CanHal::send() == Ok` 只代表 driver accepted / queued 或 initiated，除非有額外 evidence 不得宣稱 on-wire success；對 TX queue full、post-enqueue TX failure、BUS_OFF 至少提供足夠且不誤導 upper layer 的 status / observability contract。優先最小 contract / HAL patch，不建立完整 callback framework、TX worker task 或 ISO-TP scheduler。
 
-若第 4 或第 5 項無法用最小 patch 完成，而必須設計跨模組 recovery state machine、FreeRTOS concurrency/backpressure、ISO-TP-aware scheduling，立即 STOP，不自行擴張 scope，也不自行切換模型。將 root cause、需要的 state transitions、涉及模組與最小待決策問題寫入回報，供使用者決定是否執行 Stage 4B。
+若第 4、5 或 6 項無法用最小 patch 完成，而必須設計跨模組 recovery state machine、FreeRTOS concurrency/backpressure、async TX completion 或 ISO-TP-aware scheduling，立即 STOP，不自行擴張 scope，也不自行切換模型。將 root cause、需要的 state transitions / completion semantics、涉及模組與最小待決策問題寫入回報，供使用者決定是否執行 Stage 4B。
 
 Validation：
 - ESP32-S3 backend compile，記錄可重現 build evidence。
 - 能 host-test 的 boundary 盡量補 deterministic tests；硬體專屬行為無實機 evidence 標 Pending，不偽稱 Hardware PASS。
 - 確認沒有引入 active diagnostic behavior 或 read-only policy violation。
 
-成功後同步更新 TASKS.md：移除 DLC boundary、Esp32TwaiCan ownership、RTR policy、BUS_OFF semantics、RX overflow observability 中已真正完成並驗證的項目，並移除整個 Stage 4 Prompt；若某項僅部分完成，改寫 blocker/remaining work，不可假裝完成。若 Stage 4 全部完成且不需 fallback，一併移除 Stage 4B Prompt。
+成功後同步更新 TASKS.md：移除 DLC boundary、Esp32TwaiCan ownership、RTR policy、TWAI lifecycle semantics、RX overflow observability、CAN TX acceptance/completion/backpressure contract 中已真正完成並驗證的項目，並移除整個 Stage 4 Prompt；若某項僅部分完成，改寫 blocker/remaining work，不可假裝完成。若 Stage 4 全部完成且不需 fallback，一併移除 Stage 4B Prompt。
 
 回報繁體中文：Evidence、Root Cause 分類、Focused Patch、Validation、Pending hardware evidence、commit SHA。
 ```
@@ -330,8 +329,9 @@ Validation：
 只有在 Stage 4 已明確留下「最小 HAL patch 不足」的具體 evidence / blocker 時才執行本 Stage。若沒有，STOP。
 
 只處理 Stage 4 未完成且被證明需要較高階推理的 runtime 問題，例如：
-- BUS_OFF / RUNNING / STOPPED cleanup/recovery ownership semantics；或
-- RX overflow / queue / drain 需要的最小 concurrency boundary。
+- BUS_OFF / RUNNING / STOPPED cleanup/recovery ownership semantics；
+- RX overflow / queue / drain 需要的最小 concurrency boundary；或
+- TX acceptance / completion / backpressure 需要的最小 async completion 或 concurrency boundary。
 
 目標仍是「Phase 1 hardening 的最小安全設計」，不是提前做 Phase 2 ISO-TP scheduler。
 
