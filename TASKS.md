@@ -115,8 +115,6 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 ## P2 — Project rules
 
-- [ ] **更新 `AGENTS.md` 的 TASKS.md 永久規則**：加入「若 repository root 存在 `TASKS.md`，任務開始時優先讀取；成功完成並驗證授權工作後同步移除/更新對應項目；不得未經授權執行其他 TASKS；沒有未完成工作時刪除 `TASKS.md`」的永久規則，並補上 Codex remote-sync bootstrap 與 short-launch queue semantics，使本檔案即使日後刪除，正式協作規則仍由 `AGENTS.md` 保存。
-- [ ] **補上 library-ready design 原則**：Generic protocol/data layers 應維持未來可抽成 reusable library 的依賴方向，但目前不得為 library 化提前拆 repository、加入 speculative abstraction、package/release infrastructure 或無實際 consumer 的 generic API。等 ISO-TP → OBD/UDS → Brand Layer → Vehicle Profile → VehicleData 實際資料流穩定後再評估抽離。
 
 ## Deferred
 
@@ -129,54 +127,6 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 # Codex 執行計畫 — 等流量恢復後逐階段執行
 
 以下 Prompt 是為上述未完成項目預先保存的執行方案。**每次只能在使用者明確授權該 Stage 後執行該 Stage；不得因為讀到後續 Stage 就提前處理。** 每個 Stage 都繼承本檔案前面的 remote-sync bootstrap、patch/validation、queue lifecycle 與 short-launch 共通規則；Stage Prompt 不重複這些內容。
-
-## Stage 1 — 專案永久規則補齊
-
-**推薦模型：** Luna  
-**推理強度：** Low  
-**推薦理由：** 純文件規則同步，scope 小、無需高階程式推理。  
-**是否值得先用較便宜模型做前置蒐證：** 否；Luna 已是最低合理成本，且所需規則已明確。  
-**Context 建議：** Level 0→2；只需 `AGENTS.md`、`TASKS.md`，必要時讀 `docs/ARCHITECTURE.md` 驗證措辭不衝突。  
-**Execution mode：** Focused docs-only patch。  
-**Dependency / 觸發條件：** 無；應優先於其他 Stage 執行。  
-**Escalation 條件：** 若現有正式規格與欲加入規則有實質衝突，STOP 並回報；不需要自行升級模型。
-
-### Codex Prompt
-
-```text
-本次只執行 Stage 1：補齊專案永久規則。不要處理任何其他 TASKS.md 項目，也不要修改 source code、tests、workflow 或 build layout。
-
-請在 AGENTS.md 加入/整合以下永久規則，避免未來 TASKS.md 被刪除後遺失協作流程：
-
-A. TASKS.md shared queue rule
-If TASKS.md exists at the repository root, read it near the beginning of the task. Treat it as the shared temporary queue of unfinished work. After successfully completing and validating an authorized task, remove or update the corresponding entry. Do not execute unrelated TASKS.md items without explicit user authorization. Delete TASKS.md when no unfinished work remains.
-
-B. Remote-sync bootstrap
-在執行 TASKS.md 工作前，先 fetch origin；只有預期 branch、clean working tree、可 fast-forward-only 時才同步。dirty / unexpected branch / local ahead or diverged / merge-rebase-cherry-pick in progress 時立即 STOP。禁止 reset --hard、force push、自行 merge/rebase、stash/delete/discard unknown work。同步後才讀最新 AGENTS.md / TASKS.md；若 TASKS.md 或指定 Stage 已不存在，不得依舊 prompt 執行。
-
-C. Short-launch queue semantics
-TASKS.md 可保存完整 scoped Codex Prompt；使用者可在 Codex UI 手動設定模型/推理強度後，以短指令指定單一 Stage。Codex 只能執行該 Stage，不能自行執行 queue 其他項目，也不能自行切換模型或推理強度。
-
-D. Library-ready design
-核心協議與資料模型維持未來可抽離 reusable library 的依賴方向，但目前禁止為函式庫化提前拆 repository、增加 speculative abstraction、package/release infrastructure 或沒有實際 consumer 的 generic API。
-
-至少明確約束：
-- core / transport abstraction / ISO-TP / OBD / UDS / ReadOnlyGuard / generic VehicleData / profile interfaces 不得依賴 Arduino、ESP32/TWAI、Web、BLE、Wi-Fi 或特定品牌/車型實作。
-- ESP32/Arduino-specific code 留在 platform/HAL/firmware boundary。
-- Brand-specific code 不得反向滲入 Generic Core。
-- UI/network/storage clients 依賴 VehicleData/application-facing interface，不讓核心協議反向依賴 client。
-- 避免不必要 global mutable state / platform singleton 等妨礙 host testing / dependency injection 的耦合。
-- 等 ISO-TP → OBD/UDS → Brand Layer → Vehicle Profile → VehicleData 的實際資料流穩定後，再評估 library extraction。
-- 不要因本規則現在建立 library.properties、package、另一個 repo、semantic versioning 或未使用的抽象層。
-
-Validation：
-- review diff，確認只改必要文件。
-- 確認新規則不凌駕 Architecture Freeze、Read-only policy 或 evidence rules。
-
-成功後同步更新 TASKS.md：移除「更新 AGENTS.md 的 TASKS.md 永久規則」與「補上 library-ready design 原則」兩個已完成項目，並移除整個 Stage 1 Prompt。其他 unfinished TASKS 不得更動，除非只為保持文字一致所必須。
-
-回報使用繁體中文，列出：變更檔案、規則摘要、validation、commit SHA。
-```
 
 ## Stage 2 — Arduino build layout 與可重現 ESP32 backend compile
 

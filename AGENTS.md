@@ -11,6 +11,36 @@
 - Working tree 若有來源不明修改，停止，不自行清除。
 - 除非明確要求，不得 `reset --hard`、force push、discard unknown changes、rewrite history 或自行刪除 unknown files。
 
+## TASKS.md shared queue
+
+- 若 repository root 存在 `TASKS.md`，任務開始時優先讀取。它是 ChatGPT／Codex 共用、只保留 unfinished work 的暫存 queue。
+- 只執行使用者當次明確授權的 Task／Stage；不得因讀到 queue 就自行執行其他項目。
+- 成功完成並驗證授權工作後，直接移除或更新對應 unfinished item；不得建立 Completed 區塊或把 `TASKS.md` 當 changelog。
+- 若 validation 失敗、evidence 不足或遇到 blocker，保留 task 並記錄 Blocked／Deferred 狀態、evidence 與解除條件。
+- 沒有任何 unfinished work 時刪除 `TASKS.md`；有新工作時再建立。
+
+## Remote-sync bootstrap
+
+- 執行 `TASKS.md` 中的工作前，先確認 repository identity、`git status --short`、branch、HEAD，並執行 `git fetch origin`。
+- 只有在預期 branch、working tree clean、沒有 merge／rebase／cherry-pick 進行中，且 local 可由 `origin/main` fast-forward-only 時，才同步到最新 remote。
+- 若 dirty、unexpected branch、local ahead／diverged、無法 fast-forward 或存在未完成 Git operation，立即 STOP 並回報；不得自行修復。
+- 禁止 `reset --hard`、force push、自行 merge／rebase、stash、delete 或 discard unknown work。
+- 同步完成後才讀最新 local `AGENTS.md` 與 `TASKS.md`；若 `TASKS.md` 或指定 Stage 已不存在，不得依舊 prompt、舊 SHA 或記憶繼續執行。
+
+## Short-launch queue semantics
+
+- `TASKS.md` 可保存完整且 scoped 的 Codex Prompt；使用者可在 Codex UI 手動設定模型與推理強度後，以短指令指定單一 Stage。
+- Codex 只能執行當次指定的 Stage，不得自行執行 queue 中其他 Stage，也不得自行切換模型或提高推理強度。
+- 「推薦模型」「推理強度」是規劃與回顧資訊，不是 Codex 自動切換設定。
+
+## Library-ready design
+
+- Generic protocol/data layers 維持未來可抽離 reusable library 的依賴方向，但目前不得為 library 化提前拆 repository、增加 speculative abstraction、package/release infrastructure 或沒有實際 consumer 的 generic API。
+- Core、transport abstraction、ISO-TP、OBD、UDS、ReadOnlyGuard、generic VehicleData 與 profile interfaces 不得依賴 Arduino、ESP32/TWAI、Web、BLE、Wi-Fi 或特定品牌／車型實作。
+- ESP32／Arduino-specific code 留在 platform／HAL／firmware boundary；Brand-specific code 不得反向滲入 Generic Core。
+- UI、network、storage clients 依賴 VehicleData／application-facing interface；核心協議不得反向依賴 client。避免不必要 global mutable state 與 platform singleton，以維持 host testing／dependency injection 能力。
+- 等 ISO-TP → OBD／UDS → Brand Layer → Vehicle Profile → VehicleData 的實際資料流穩定後，再評估 library extraction；目前不要建立 `library.properties`、package、另一個 repository、semantic versioning 或未使用的抽象層。
+
 ## Repository reading and evidence
 
 採 progressive expansion：Level 0（diff/error/log/evidence）→ Level 1（direct symbol）→ Level 2（caller/callee）→ Level 3（完整相關檔案）→ Level 4（module/directory）→ Level 5（repository-wide）。只有上一級不足時才擴大。
