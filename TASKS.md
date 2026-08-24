@@ -169,10 +169,6 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 ---
 
-## Governance maintenance
-
-- [ ] **對齊 `AGENTS.md` retry wording 與正式 retry semantics**：目前 `AGENTS.md` 的 Repository reading and evidence 仍使用「同一 root cause 最多 retry 一次」的泛化 wording，可能誤套到 compile/source-fix loop；應以最小文字修正明確限定 non-compile operational retry，保留正式 compile/source-fix retry override，並明確指出 Permission-Gated Operation resolution 不計 operational retry。不得改變其他 policy、project behavior 或 validation semantics。
-
 ## P0 — Phase 1 hardening prerequisite
 
 - [ ] **確認並修正 Arduino build layout / reproducible ESP32 build**：目前 sketch 位於 `src/src.ino`，實作位於 `src/hal/`、`src/core/` 等子目錄。確認標準 Arduino IDE / Arduino CLI build 是否真的會編譯 TWAI backend 與相關 source；若不會，採最小且 library-ready 的 repository layout 修正，並建立可重現的 ESP32-S3 compile validation。此項完成前，不應把既有 ESP32 Compile PASS 視為完整 backend build evidence。
@@ -204,65 +200,6 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 # Codex 執行計畫 — 等流量恢復後逐階段執行
 
 以下 Prompt 是為上述未完成項目預先保存的執行方案。**每次只能在使用者明確授權該 Stage 後執行該 Stage；不得因為讀到後續 Stage 就提前處理。** 每個 Stage 都繼承本檔案前面的 remote-sync bootstrap、patch/validation、queue lifecycle 與 short-launch 共通規則；Stage Prompt 不重複這些內容。
-
-## Stage G1 — Retry policy wording consistency
-
-**推薦模型：** Luna  
-**推理強度：** Low  
-**推薦理由：** 已確認是單一永久規則 wording 的 authority consistency 修正；scope 明確，不需要 source/build/protocol 推理。  
-**是否值得先用較便宜模型做前置蒐證：** 否；Luna 已是最低合理成本，最新 `AGENTS.md` / `TASKS.md` evidence 已確認問題。  
-**Context 建議：** Level 0→1；只讀最新 `AGENTS.md`、`TASKS.md` 與當次 diff。  
-**Execution mode：** Focused documentation patch。  
-**Dependency / 觸發條件：** 無技術 dependency；應在後續 compile/source-fix Stage 前完成，以消除 retry authority ambiguity。  
-**Escalation 條件：** 若發現需要改動 retry 次數、compile validation contract、Stage-specific semantics 或其他治理 policy，STOP 並回報；本 Stage 不授權擴張 policy。
-
-### Codex Prompt
-
-```text
-本次只執行 Stage G1：Retry policy wording consistency。這是一次性 governance maintenance；不要執行 Stage 2 或其他 TASKS。
-
-先依最新 AGENTS.md / TASKS.md 執行安全 remote-sync bootstrap。若必要操作遇到 permission gate，遵守 AGENTS.md 的 Permission-Gated Operation。
-
-Scope 僅限：
-- `AGENTS.md`
-- `TASKS.md` queue bookkeeping
-- `git diff --check`
-
-不得修改 source、tests、docs、workflow、VALIDATION.md、CODEX_PROGRESS.md、build layout、CAN/HAL/protocol/architecture，也不得改變 P0/P1/P2、Deferred、Stage 2～5、Stage 4B 或其 dependency / Prompt。
-
-Evidence：
-- `TASKS.md` 已規定：同一 non-compile operational root cause 預設最多自動 retry 1 次；第二次仍失敗即 STOP / classification。
-- Permission-gate resolution 不計 operational retry。
-- Compile/source-fix retry 若 `AGENTS.md`、正式 validation contract 或明確 Stage 另有正式上限，服從該正式規則。
-- `AGENTS.md` 目前仍有較泛化的「同一 root cause 最多 retry 一次」wording，可能與上述 semantics 產生 authority ambiguity。
-
-工作：
-1. 只在 `AGENTS.md` 的既有 retry policy 位置做最小 wording 修正，不新增新的 policy section、不擴張 retry policy。
-2. 目標語意：
-   「同一 non-compile operational root cause 預設最多自動 retry 1 次；第二次仍失敗即 STOP 並重新分類。Compile/source-fix retry 若 AGENTS.md、正式 validation contract 或明確 Stage 另有上限，服從該正式規則。Permission-gate resolution 不計入 operational retry。」
-3. 可依 `AGENTS.md` 現有語氣做小幅措辭調整，但不得改變 retry 次數或其他 governance semantics。
-4. 不要修改 `Permission-Gated Operation` 其他內容，不要修改 Git safety、progressive repository reading、model selection、validation、architecture 或任何 project behavior。
-5. `TASKS.md` 只做本 Stage 完成後的 queue cleanup，不調整其他 task/stage。
-
-Validation：
-- `git diff --check` PASS。
-- diff 只應包含 `AGENTS.md` 的 retry wording 與 `TASKS.md` 移除本 maintenance task / Stage G1 Prompt。
-- 不跑 build/test，除非 latest repository evidence 顯示文件 patch 無法單靠 static diff 驗證；若出現此異常，STOP 而非擴 scope。
-
-成功後：
-- 從 `TASKS.md` 移除「對齊 AGENTS.md retry wording 與正式 retry semantics」unfinished item。
-- 移除整個 Stage G1 Prompt。
-- 保留所有其他 P0/P1/P2、Deferred、Stage 2～5、Stage 4B、dependency / trigger / Prompt 完全不變。
-- 建立 focused commit 並依正常 Git safety / permission policy push origin/main。
-
-最後用繁體中文回報：
-- baseline HEAD
-- AGENTS.md 修改前後 retry semantics
-- TASKS cleanup
-- `git diff --check`
-- changed files
-- final commit SHA / push result
-```
 
 ## Stage 2 — Arduino build layout 與可重現 ESP32 backend compile
 

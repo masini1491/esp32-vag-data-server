@@ -69,7 +69,7 @@
 
 Debug 流程：Evidence → Root Cause → Focused Patch → Targeted Validation。Root cause 分類為 `CONFIRMED ROOT CAUSE`、`HIGH-CONFIDENCE LIKELY ROOT CAUSE` 或 `INSUFFICIENT OBSERVABILITY`；後者先增加最小 diagnostics，不直接重構。
 
-同一 root cause 最多 retry 一次；第二次失敗需重新分類為 SOURCE、TOOLCHAIN、ENVIRONMENT、INFRASTRUCTURE 或 SERVICE。Infrastructure/service error 重複兩次時停止 coding loop。
+同一 non-compile operational root cause 預設最多自動 retry 1 次；第二次仍失敗即 STOP 並重新分類為 `SOURCE`、`TOOLCHAIN`、`ENVIRONMENT`、`INFRASTRUCTURE` 或 `SERVICE`。Compile／source-fix retry 若本檔、正式 validation contract 或明確 Stage 另有上限，服從該正式規則；Permission-Gated Operation resolution 不計入 operational retry。Infrastructure／service error 重複兩次時停止 coding loop。
 
 ## Validation and hardware evidence
 
