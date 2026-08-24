@@ -17,6 +17,44 @@
 - 若 validation 失敗、evidence 不足或遇到環境 blocker，不得移除 task；改為 `Blocked` 或保留 unfinished 狀態，簡短記錄 blocker、已知 evidence 與解除條件。
 - 完全沒有任何 unfinished work 時刪除 `TASKS.md`；未來有新工作時再重新建立。
 
+### 一次性小型 maintenance 不必進 TASKS.md
+
+`TASKS.md` 是「未完成、需要追蹤、需要未來再次執行」的 queue，不是所有微小修改都必須先建立 task。
+
+若工作同時具備以下特徵，可不寫入 `TASKS.md`，由 ChatGPT 直接產生一次性的短 Codex Prompt：
+- 一次性工作。
+- 已知修改位置。
+- 已知修改內容或 root cause 已確認。
+- scope 極小、風險低。
+- 完成後沒有後續追蹤價值，也不需要保留為 unfinished queue。
+- 不影響 project behavior、architecture、protocol、security、hardware、persistence、runtime state 或重要 validation state。
+
+典型例子：
+- 單行或少量文件 wording 修正。
+- 已知位置的 typo / 過期術語修正。
+- 單純排序、格式、標題或註解整理。
+- 不影響 project behavior / architecture / protocol / security / hardware / validation state 的小型 documentation maintenance。
+- 已知 root cause、scope 極小、完成後不需要保留為 unfinished queue 的 maintenance。
+
+這類一次性 maintenance 通常建議：
+- **推薦模型：** Luna
+- **推理強度：** Low
+- **Context：** Level 0→1
+- **Execution mode：** Focused patch
+- **Agent：** 1
+
+即使不進 `TASKS.md`，Codex 仍必須遵守最新 `AGENTS.md` 的安全 remote-sync、scope、Git、validation 與 commit/push 規則；一次性短 Prompt 不得繞過正式 source of truth 或 Git safety。
+
+若符合以下任一情況，則應寫入 `TASKS.md`：
+- 需要後續追蹤。
+- 目前為 Blocked / Deferred / Pending-validation。
+- 工作分成多個 Stage。
+- 有 dependency / trigger。
+- root cause 尚未完全確認。
+- 可能需要之後接續 implementation。
+- 會實質影響 project behavior、architecture、protocol、security、hardware、persistence、runtime state 或重要 validation state。
+- 若現在不記錄，之後容易遺漏。
+
 ## 模型與執行設定的角色
 
 每個 Stage / Task 中的「推薦模型」「推理強度」「Context」「Execution mode」都是 ChatGPT 規劃時保存的**建議值與回顧依據**，不是 Codex 自動切換模型的指令。
@@ -112,9 +150,6 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 - [ ] **釐清 BUS_OFF stop status semantics**：ESP-IDF 在 BUS_OFF 可 uninstall，但 `twai_stop()` 只接受 RUNNING。若 cleanup 實際成功，不應用誤導性的 `NotInitialized` 表示整體 stop 失敗。只做最小 status 修正；不要提前建立 speculative recovery state machine。
 - [ ] **建立最小 RX overflow observability**：目前 TWAI 使用 accept-all 且 default RX queue 很小，alerts 關閉。ISO-TP 前至少要能辨識 RX queue full / FIFO overrun / BUS_OFF 等關鍵狀態，並決定合理 queue sizing / drain strategy；不得因本項提前實作完整 FreeRTOS scheduler 或 Phase 2 concurrency architecture。
 - [ ] **Phase 1 hardening 後重新取得 CI / compile evidence**：host tests 與 ESP32-S3 backend compile 都要在 hardening 後重新驗證，並以新的 commit/run 作為 Phase 1 PASS evidence；不要沿用早於 edge-case hardening 的舊 CI run。
-
-## P2 — Project rules
-
 
 ## Deferred
 
