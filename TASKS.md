@@ -109,12 +109,13 @@ Codex 本機 repository 可能落後 GitHub。每次執行 `TASKS.md` 中的工�
 1. 確認 repository identity。
 2. 記錄 `git status --short`、目前 branch、HEAD。
 3. `git fetch origin`。
-4. 若目前為預期 branch（通常 `main`）、working tree clean，且 local 可由 `origin/main` fast-forward，才使用 fast-forward-only 同步。
-5. 若 local 已與 `origin/main` 相同，直接繼續。
-6. 若 dirty、unexpected branch、local ahead/diverged、無法 fast-forward，或 merge/rebase/cherry-pick 未完成，立即 STOP 並回報；不得自行修復。
-7. 禁止 `reset --hard`、force push、自行 merge/rebase、stash/delete/丟棄未知 user work。
-8. 同步完成後才讀最新 local `AGENTS.md` 與根目錄 `TASKS.md`。
-9. 若同步後 `TASKS.md` 已不存在，或指定 Stage 已被移除，不得依舊 prompt、舊 SHA 或聊天記憶繼續執行該工作；STOP 並回報 queue 已變更。
+4. 若 Git / filesystem / sandbox 權限不足（例如無法寫入 `.git/FETCH_HEAD`）而該操作仍在當次授權 scope 內，**不要自行以 `sudo`、`chmod`、`chown`、替代目錄、繞過 Git safety 或其他方式突破權限**。先停止在 permission boundary，向使用者明確要求所需權限／approval，說明失敗 command、被拒絕的 resource、需要該權限的原因與最小必要範圍；取得授權後才重試。
+5. 若目前為預期 branch（通常 `main`）、working tree clean，且 local 可由 `origin/main` fast-forward，才使用 fast-forward-only 同步。
+6. 若 local 已與 `origin/main` 相同，直接繼續。
+7. 若 dirty、unexpected branch、local ahead/diverged、無法 fast-forward，或 merge/rebase/cherry-pick 未完成，立即 STOP 並回報；不得自行修復。
+8. 禁止 `reset --hard`、force push、自行 merge/rebase、stash/delete/丟棄未知 user work。
+9. 同步完成後才讀最新 local `AGENTS.md` 與根目錄 `TASKS.md`。
+10. 若同步後 `TASKS.md` 已不存在，或指定 Stage 已被移除，不得依舊 prompt、舊 SHA 或聊天記憶繼續執行該工作；STOP 並回報 queue 已變更。
 
 ## Operational failure taxonomy / retry cap — 所有 Stage 共通
 
@@ -129,6 +130,8 @@ Operational failure 分類固定使用：
 規則：
 - 本分類用於 operational / execution failure，不取代既有 Root Cause 三分類 `CONFIRMED ROOT CAUSE` / `HIGH-CONFIDENCE LIKELY ROOT CAUSE` / `INSUFFICIENT OBSERVABILITY`。
 - 同一 root cause 的**非 compile operational retry 最多 1 次**；第二次仍失敗就 STOP，分類 failure，保存最小可重現 evidence 並回報，不進入無限重試或換模型迴圈。
+- 若 failure 是可由使用者授予必要權限解決的 `ENVIRONMENT` / `INFRASTRUCTURE` permission denial，先向使用者要求最小必要 approval；**等待使用者授權本身不算一次 retry**，未取得授權前不得重複執行相同失敗 command。取得授權後才可做那 1 次有意義的 retry。
+- 權限要求必須具體：列出要重試的 command、被拒絕的 path/resource、用途與最小權限範圍。不得籠統要求 full admin/root access，也不得把權限不足包裝成 source defect。
 - 只有 `SOURCE` failure 可直接支持繼續修改 source；`TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `HARDWARE_REQUIRED` 必須先處理或等待對應外部條件，不得把非 source failure 猜成 source bug 後繼續 patch。
 - `TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `HARDWARE_REQUIRED` 本身都不是 Luna → Terra → Sol、Low → Medium → High、Multi-Agent 或更大 Context 的升級理由。
 - 若 `AGENTS.md`、正式 validation 規則或特定 Stage 已有 compile-fix retry 上限，原規則完整保留；本節的 non-compile operational retry cap 不覆蓋、不放寬也不取代 compile-fix retry 規則。
@@ -160,10 +163,10 @@ Validation 由小到大：static check → targeted verifier → targeted test �
 完整執行 Prompt 保存在本檔案。正常流程是先由使用者與 ChatGPT 討論目前該跑哪個 Stage，以及建議模型 / 推理強度；使用者在 Codex UI 手動設定後，只需貼短啟動指令，例如：
 
 ```text
-先安全同步最新 origin/main（僅允許 clean、fast-forward-only；異常即 STOP）。同步後讀根目錄 AGENTS.md 與 TASKS.md，完整執行 TASKS.md 的「<Stage 名稱>」，只執行該 Stage。成功驗證後依 TASKS.md 規則更新 queue、commit 並 push。
+先安全同步最新 origin/main（僅允許 clean、fast-forward-only；異常即 STOP）。若執行所需的 Git／filesystem／sandbox 權限不足，先向我明確要求最小必要權限／approval，說明 command、resource 與原因；未經授權不得自行繞過。同步後讀根目錄 AGENTS.md 與 TASKS.md，完整執行 TASKS.md 的「<Stage 名稱>」，只執行該 Stage。成功驗證後依 TASKS.md 規則更新 queue、commit 並 push。
 ```
 
-Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權執行其他 Stage。
+Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權執行其他 Stage。ChatGPT 未來產生一次性短 Codex Prompt 或 Stage launcher 時，也應包含等價的 permission-escalation 句子，避免把可授權解決的 permission denial 直接當成最終 blocker。
 
 ---
 
@@ -246,7 +249,7 @@ Validation：
 **Context 建議：** Level 0→3；`can_types.h`、`can_hal.h`、`mock_can.h`、`test_helpers.h`、`tests/host/main.cpp` 與 direct caller。  
 **Execution mode：** Focused portable patch + targeted host tests。  
 **Dependency / 觸發條件：** Stage 2 PASS。  
-**Escalation 條件：** 若修正需要改變公開 CAN API 的核心語意或牽涉多個未預期 consumer，STOP 回報 evidence，不自行擴 scope/模型。
+**Escalation條件：** 若修正需要改變公開 CAN API 的核心語意或牽涉多個未預期 consumer，STOP 回報 evidence，不自行擴 scope/模型。
 
 ### Codex Prompt
 
@@ -285,7 +288,7 @@ Validation：
 **Context 建議：** Level 0→3；`esp32_twai_can.*`、CanFrame/CanStatus、HardwareConfig、直接 tests/build evidence；必要時精準讀對應 ESP-IDF TWAI source。  
 **Execution mode：** Focused HAL patch；禁止提前進 Phase 2 concurrency architecture。  
 **Dependency / 觸發條件：** Stage 2 + Stage 3 PASS。  
-**Escalation 條件：** 若 TWAI lifecycle、RX overflow 或 TX completion/backpressure 無法以最小 HAL/contract patch 完成，而實際需要 runtime state machine、FreeRTOS concurrency/backpressure、async TX completion 或 ISO-TP-aware scheduling，STOP 並保存 evidence；建議下一輪考慮 Stage 4B，但由使用者決定模型與強度。
+**Escalation條件：** 若 TWAI lifecycle、RX overflow 或 TX completion/backpressure 無法以最小 HAL/contract patch 完成，而實際需要 runtime state machine、FreeRTOS concurrency/backpressure、async TX completion 或 ISO-TP-aware scheduling，STOP 並保存 evidence；建議下一輪考慮 Stage 4B，但由使用者決定模型與強度。
 
 ### Codex Prompt
 
@@ -321,7 +324,7 @@ Validation：
 **Context 建議：** 只載入 Stage 4 blocker/evidence、直接 HAL/state modules、必要 ESP-IDF semantics。  
 **Execution mode：** Evidence-constrained design/patch。  
 **Dependency / 觸發條件：** Stage 4 必須已明確 STOP 並留下需要更高階 runtime reasoning 的 evidence；是否真的使用 Terra / Medium 由使用者決定。  
-**Escalation 條件：** 若 Terra 分析證明問題已進入非平凡跨模組 concurrency + protocol/lifecycle safety 或高風險架構設計，STOP；可建議使用者考慮 Sol / Medium～High，但不得自行切換。
+**Escalation條件：** 若 Terra 分析證明問題已進入非平凡跨模組 concurrency + protocol/lifecycle safety 或高風險架構設計，STOP；可建議使用者考慮 Sol / Medium～High，但不得自行切換。
 
 ### Codex Prompt
 
@@ -355,7 +358,7 @@ Validation：
 **Context 建議：** Level 0→3；TASKS、AGENTS、host tests/workflow、build layout、DEVELOPMENT/README 中 Phase 1 status。  
 **Execution mode：** Validation-first consolidation；禁止新增功能。  
 **Dependency / 觸發條件：** Stage 1 + Stage 1B + Stage 2～4 PASS；若 Stage 4B 曾被觸發，則 Stage 4B 也必須 PASS 或其剩餘 blocker 已被明確 Deferred。  
-**Escalation 條件：** 若 CI/build 問題演變為大型 toolchain migration、複雜 workflow architecture 或與 product logic 無關的 infra 問題，STOP 並保留 Blocked/Deferred，不自行升模型。
+**Escalation條件：** 若 CI/build 問題演變為大型 toolchain migration、複雜 workflow architecture 或與 product logic 無關的 infra 問題，STOP 並保留 Blocked/Deferred，不自行升模型。
 
 ### Codex Prompt
 
