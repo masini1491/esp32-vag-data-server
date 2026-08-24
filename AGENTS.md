@@ -27,6 +27,16 @@
 - 禁止 `reset --hard`、force push、自行 merge／rebase、stash、delete 或 discard unknown work。
 - 同步完成後才讀最新 local `AGENTS.md` 與 `TASKS.md`；若 `TASKS.md` 或指定 Stage 已不存在，不得依舊 prompt、舊 SHA 或記憶繼續執行。
 
+## Permission-Gated Operation
+
+- 已由使用者授權的 Task／Stage 所必需的 Git、build、test、toolchain 或 filesystem 操作，若因 sandbox、filesystem 或 execution permission 被拒絕，先判斷是否只是可由授權解除的 permission gate。
+- 若該 gate 可解除且執行環境支援 permission escalation，向使用者要求完成目前必要操作的最小權限。Permission request 必須說明 command／operation、為何本 Task／Stage 必須執行、被拒絕的 resource/path（若有）與最小 permission scope。
+- 第一次單純 permission denial 不得直接判定 production source、repository、Git remote、toolchain 或 environment 故障。使用者批准只授權重試原本被 gate 阻擋的必要操作，不代表擴大 Task scope、修改額外檔案、開始下一 Stage 或執行其他高風險 Git 操作。
+- 若使用者拒絕、環境無法要求所需權限，或取得必要權限後相同操作仍失敗，才依 evidence 分類為 `ENVIRONMENT`、`INFRASTRUCTURE`、`TOOLCHAIN`、`SERVICE` 等 operational failure。
+- Permission request／approval 不計 operational retry；permission denial → request → approval → 原操作重試屬於 permission gate resolution。只有取得必要權限後操作本身仍真正失敗，才開始計算 operational failure retry cap。
+- `git fetch origin` 遇到 `.git/FETCH_HEAD: Permission denied`、Git lock/ref file 無法建立、sandbox 阻擋 repository metadata 寫入或其他明確 filesystem permission denial 時，優先套用本節，不先判定 environment failure。
+- 禁止以 permission workaround 繞過安全規則：`sudo`、`chmod -R 777`、`reset --hard`、force push、自行刪除 `.git/FETCH_HEAD`、未確認原因就刪除 `.git/index.lock` 或其他 lock、重新 clone 覆蓋 working tree、stash/delete/discard unknown user work、自行 merge/rebase/cherry-pick，或以另一 repository 繞過目前問題。
+
 ## Short-launch queue semantics
 
 - `TASKS.md` 可保存完整且 scoped 的 Codex Prompt；使用者可在 Codex UI 手動設定模型與推理強度後，以短指令指定單一 Stage。

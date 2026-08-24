@@ -109,7 +109,7 @@ Codex 本機 repository 可能落後 GitHub。每次執行 `TASKS.md` 中的工�
 1. 確認 repository identity。
 2. 記錄 `git status --short`、目前 branch、HEAD。
 3. `git fetch origin`。
-4. 若 Git / filesystem / sandbox 權限不足（例如無法寫入 `.git/FETCH_HEAD`）而該操作仍在當次授權 scope 內，**不要自行以 `sudo`、`chmod`、`chown`、替代目錄、繞過 Git safety 或其他方式突破權限**。先停止在 permission boundary，向使用者明確要求所需權限／approval，說明失敗 command、被拒絕的 resource、需要該權限的原因與最小必要範圍；取得授權後才重試。
+4. 若必要 Git / build / test / toolchain / filesystem 操作遭 sandbox / filesystem / execution permission denial，遵守 `AGENTS.md` 的 `Permission-Gated Operation`；可向使用者要求完成目前 Stage 所需的最小權限，不得自行繞過。
 5. 若目前為預期 branch（通常 `main`）、working tree clean，且 local 可由 `origin/main` fast-forward，才使用 fast-forward-only 同步。
 6. 若 local 已與 `origin/main` 相同，直接繼續。
 7. 若 dirty、unexpected branch、local ahead/diverged、無法 fast-forward，或 merge/rebase/cherry-pick 未完成，立即 STOP 並回報；不得自行修復。
@@ -130,8 +130,7 @@ Operational failure 分類固定使用：
 規則：
 - 本分類用於 operational / execution failure，不取代既有 Root Cause 三分類 `CONFIRMED ROOT CAUSE` / `HIGH-CONFIDENCE LIKELY ROOT CAUSE` / `INSUFFICIENT OBSERVABILITY`。
 - 同一 root cause 的**非 compile operational retry 最多 1 次**；第二次仍失敗就 STOP，分類 failure，保存最小可重現 evidence 並回報，不進入無限重試或換模型迴圈。
-- 若 failure 是可由使用者授予必要權限解決的 `ENVIRONMENT` / `INFRASTRUCTURE` permission denial，先向使用者要求最小必要 approval；**等待使用者授權本身不算一次 retry**，未取得授權前不得重複執行相同失敗 command。取得授權後才可做那 1 次有意義的 retry。
-- 權限要求必須具體：列出要重試的 command、被拒絕的 path/resource、用途與最小權限範圍。不得籠統要求 full admin/root access，也不得把權限不足包裝成 source defect。
+- Permission gate resolution 不計 operational retry；只有取得必要權限後操作本身仍失敗，才依本節 taxonomy / retry cap 處理。詳細 permission request、approval 與禁止 workaround 規則以 `AGENTS.md` 為準。
 - 只有 `SOURCE` failure 可直接支持繼續修改 source；`TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `HARDWARE_REQUIRED` 必須先處理或等待對應外部條件，不得把非 source failure 猜成 source bug 後繼續 patch。
 - `TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `HARDWARE_REQUIRED` 本身都不是 Luna → Terra → Sol、Low → Medium → High、Multi-Agent 或更大 Context 的升級理由。
 - 若 `AGENTS.md`、正式 validation 規則或特定 Stage 已有 compile-fix retry 上限，原規則完整保留；本節的 non-compile operational retry cap 不覆蓋、不放寬也不取代 compile-fix retry 規則。
