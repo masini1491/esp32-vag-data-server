@@ -84,6 +84,24 @@
 - targeted validation
 - 成功後如何更新 `TASKS.md`
 
+## Progressive Repository Reading — 所有 Stage 共通
+
+Repository 讀取採逐級擴張，目標是用完成目前任務所需的最小 Context 取得足夠 evidence：
+
+- **Level 0**：最新 `TASKS.md`、當前 diff / error / log / build evidence、Git preflight 與當次使用者授權。
+- **Level 1**：直接相關 symbol / target / test。
+- **Level 2**：直接 caller / callee、owner、直接 dependency。
+- **Level 3**：完整 relevant file。
+- **Level 4**：直接相關 module / directory。
+- **Level 5**：repository-wide search / read。
+
+執行要求：
+- 預設從 Level 0 → 1 → 2；若在較低 Level 已有足夠 evidence，就停止擴張。
+- 只有 evidence 不足，且能指出「目前缺哪一個具體答案／關聯」時，才逐級擴張到下一 Level。
+- 不得為了熟悉 repository、建立一般背景知識或「可能有關」而直接做 repo-wide scan。
+- repository size、檔案數量或可用 Context 很大，本身都不是擴張讀取範圍或提高 Context 的理由。
+- Stage 自己的 `Context 建議` 若更窄，優先遵守更窄 scope；若確需超過建議 Level，必須由 evidence 驅動並在回報說明理由。
+
 ## Codex remote-sync bootstrap — 所有 Stage 共通
 
 Codex 本機 repository 可能落後 GitHub。每次執行 `TASKS.md` 中的工作前，必須先安全同步 remote，再讀最新版規則與 queue：
@@ -97,6 +115,23 @@ Codex 本機 repository 可能落後 GitHub。每次執行 `TASKS.md` 中的工�
 7. 禁止 `reset --hard`、force push、自行 merge/rebase、stash/delete/丟棄未知 user work。
 8. 同步完成後才讀最新 local `AGENTS.md` 與根目錄 `TASKS.md`。
 9. 若同步後 `TASKS.md` 已不存在，或指定 Stage 已被移除，不得依舊 prompt、舊 SHA 或聊天記憶繼續執行該工作；STOP 並回報 queue 已變更。
+
+## Operational failure taxonomy / retry cap — 所有 Stage 共通
+
+Operational failure 分類固定使用：
+- `SOURCE`
+- `TOOLCHAIN`
+- `ENVIRONMENT`
+- `INFRASTRUCTURE`
+- `SERVICE`
+- `HARDWARE_REQUIRED`
+
+規則：
+- 本分類用於 operational / execution failure，不取代既有 Root Cause 三分類 `CONFIRMED ROOT CAUSE` / `HIGH-CONFIDENCE LIKELY ROOT CAUSE` / `INSUFFICIENT OBSERVABILITY`。
+- 同一 root cause 的**非 compile operational retry 最多 1 次**；第二次仍失敗就 STOP，分類 failure，保存最小可重現 evidence 並回報，不進入無限重試或換模型迴圈。
+- 只有 `SOURCE` failure 可直接支持繼續修改 source；`TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `HARDWARE_REQUIRED` 必須先處理或等待對應外部條件，不得把非 source failure 猜成 source bug 後繼續 patch。
+- `TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `HARDWARE_REQUIRED` 本身都不是 Luna → Terra → Sol、Low → Medium → High、Multi-Agent 或更大 Context 的升級理由。
+- 若 `AGENTS.md`、正式 validation 規則或特定 Stage 已有 compile-fix retry 上限，原規則完整保留；本節的 non-compile operational retry cap 不覆蓋、不放寬也不取代 compile-fix retry 規則。
 
 ## Codex patch / validation 共通規則
 
@@ -236,7 +271,7 @@ Validation：
 
 Validation：
 - host tests 必須涵蓋 valid min/max、invalid standard 0x800、invalid extended 0x20000000、length 0/8/9、malformed helper input、MockCan stop→initialize stale RX lifecycle。
-- 使用現有 host CI/build style；若 toolchain 可用，實際執行 targeted tests。
+- 使用現有 host CI/build style；若 toolchain可用，實際執行 targeted tests。
 
 成功後同步更新 TASKS.md：移除 CAN ID range、host helper malformed safety、MockCan lifecycle 三個完成項目，並移除整個 Stage 3 Prompt。不要移除尚未由本 Stage 處理的 TWAI/RTR/BUS_OFF/overflow tasks。
 
