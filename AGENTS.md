@@ -5,6 +5,13 @@
 - Codex 工作回報使用繁體中文。
 - Source code symbol / API / protocol name 保持原文；文件以繁體中文為主，必要技術名稱使用英文。
 
+## Common playbook routing
+
+- 本專案以 `masini1491/ai-development-playbook` 作為共通 development baseline；本檔與 repository 正式 technical contracts 保存 project-specific authority。
+- Authority hierarchy：user current instruction → latest project governance／technical source of truth → common playbook → `TASKS.md` → stale prompt／cached copy／memory。
+- 只依當次 Task route 到最低必要章節，不完整掃描 playbook：Git／repository／permission／external service → `REPOSITORY_EXECUTION.md`；debug／root cause／retry／validation → `DEBUG_VALIDATION.md`；architecture／research／external authority → `RESEARCH_ARCHITECTURE.md`；ESP32／embedded／hardware → `EMBEDDED_PROJECTS.md`；Codex model／reasoning／Context／Agent／prompt discipline → `CODEX_PROMPT_RULES.md`；Windows／PowerShell／local runtime → relevant 時才讀 `TOOLCHAIN.md`。
+- External playbook reference 只代表 routing，不代表 execution environment 自動具有 network、filesystem 或 credential capability；需要時仍須通過正式 permission gates。
+
 ## Source of truth and Git safety
 
 - GitHub `main` 是 source of truth；開始工作前依任務需要確認 `git status`、branch、HEAD。
@@ -13,11 +20,9 @@
 
 ## TASKS.md shared queue
 
-- 若 repository root 存在 `TASKS.md`，任務開始時優先讀取。它是 ChatGPT／Codex 共用、只保留 unfinished work 的暫存 queue。
-- 只執行使用者當次明確授權的 Task／Stage；不得因讀到 queue 就自行執行其他項目。
-- 成功完成並驗證授權工作後，直接移除或更新對應 unfinished item；不得建立 Completed 區塊或把 `TASKS.md` 當 changelog。
-- 若 validation 失敗、evidence 不足或遇到 blocker，保留 task 並記錄 Blocked／Deferred 狀態、evidence 與解除條件。
-- 沒有任何 unfinished work 時刪除 `TASKS.md`；有新工作時再建立。
+- `TASKS.md` 是本 repository 唯一 active unfinished／executable queue；若存在，任務開始時讀取並只執行使用者當次授權的 Task／Stage。
+- 成功驗證後移除／更新對應 unfinished item；不建立 Completed 區塊或把 queue 當 changelog。沒有 unfinished work 時刪除 `TASKS.md`。
+- Queue lifecycle、Prompt discipline 與一般 execution semantics 依 common playbook routing；本 repository 的 project-specific queue scope 與 cleanup requirement 以本節為準。
 
 ## Remote-sync bootstrap
 
@@ -29,20 +34,14 @@
 
 ## Permission-Gated Operation
 
-- 已由使用者授權的 Task／Stage 所必需的 Git、build、test、toolchain 或 filesystem 操作，若因 sandbox、filesystem 或 execution permission 被拒絕，先判斷是否只是可由授權解除的 permission gate。
-- 若該 gate 可解除且執行環境支援 permission escalation，向使用者要求完成目前必要操作的最小權限。Permission request 必須說明 command／operation、為何本 Task／Stage 必須執行、被拒絕的 resource/path（若有）與最小 permission scope。
-- 第一次單純 permission denial 不得直接判定 production source、repository、Git remote、toolchain 或 environment 故障。使用者批准只授權重試原本被 gate 阻擋的必要操作，不代表擴大 Task scope、修改額外檔案、開始下一 Stage 或執行其他高風險 Git 操作。
-- 若使用者拒絕、環境無法要求所需權限，或取得必要權限後相同操作仍失敗，才依 evidence 分類為 `SOURCE`、`TOOLCHAIN`、`ENVIRONMENT`、`INFRASTRUCTURE`、`SERVICE`、`AUTHENTICATION`、`AUTHORIZATION` 或 `HARDWARE_REQUIRED` 等 operational failure。
-- Permission request／approval 不計 operational retry；permission denial → request → approval → 原操作重試屬於 permission gate resolution。只有取得必要權限後操作本身仍真正失敗，才開始計算 operational failure retry cap。
-- `git fetch origin` 遇到 `.git/FETCH_HEAD: Permission denied`、Git lock/ref file 無法建立、sandbox 阻擋 repository metadata 寫入或其他明確 filesystem permission denial 時，優先套用本節，不先判定 environment failure。
+- Permission-gated execution、capability layers、external network／service、credential boundary 與一般 failure handling 依 common playbook routing；本 repository 仍採更嚴格的 Git safety／fast-forward-only 規則。
+- `git fetch origin` 遇到 `.git/FETCH_HEAD: Permission denied`、Git lock/ref file 無法建立或 sandbox 阻擋 repository metadata 寫入時，先依 playbook permission gate 處理，不先判定 environment failure。
 - 禁止以 permission workaround 繞過安全規則：`sudo`、`chmod -R 777`、`reset --hard`、force push、自行刪除 `.git/FETCH_HEAD`、未確認原因就刪除 `.git/index.lock` 或其他 lock、重新 clone 覆蓋 working tree、stash/delete/discard unknown user work、自行 merge/rebase/cherry-pick，或以另一 repository 繞過目前問題。
 - External network、external API／CLI／HTTPS、remote service、package／dependency retrieval 與 credential capability 等 execution boundary，遵守最新版 `masini1491/ai-development-playbook` 的 `REPOSITORY_EXECUTION.md`（Authorization／Capability Layers、Permission-Gated Operation、External network／service boundary、Remote Git Permission Gate）。本 repository 更嚴格的 Git safety、fast-forward-only 與 forbidden workaround 規則繼續適用；任何 permission／network approval 或 credential capability 都不會擴張 Task／Stage authorization。
 
 ## Short-launch queue semantics
 
-- `TASKS.md` 可保存完整且 scoped 的 Codex Prompt；使用者可在 Codex UI 手動設定模型與推理強度後，以短指令指定單一 Stage。
-- Codex 只能執行當次指定的 Stage，不得自行執行 queue 中其他 Stage，也不得自行切換模型或提高推理強度。
-- 「推薦模型」「推理強度」是規劃與回顧資訊，不是 Codex 自動切換設定。
+- Short-launch、model／reasoning／Context／Agent discipline 依 `CODEX_PROMPT_RULES.md`；使用者手動選擇模型與推理強度，Codex 不得自行升級或執行未授權 Stage。
 
 ## Library-ready design
 
@@ -52,15 +51,9 @@
 - UI、network、storage clients 依賴 VehicleData／application-facing interface；核心協議不得反向依賴 client。避免不必要 global mutable state 與 platform singleton，以維持 host testing／dependency injection 能力。
 - 等 ISO-TP → OBD／UDS → Brand Layer → Vehicle Profile → VehicleData 的實際資料流穩定後，再評估 library extraction；目前不要建立 `library.properties`、package、另一個 repository、semantic versioning 或未使用的抽象層。
 
-## Windows / PowerShell toolchain contract
+## Windows / PowerShell routing
 
-- Windows 可作為 interactive／local development environment；這不要求 GitHub Actions、host CI 或其他 cross-platform validation 改用 Windows。現有 Linux／Ubuntu CI 與非 PowerShell tooling 保持原樣。
-- 未來所有 repository-owned `.ps1` tooling 預設使用 `pwsh`／`pwsh.exe`（PowerShell 7），且 `$PSVersionTable.PSEdition` 必須為 `Core`；Windows PowerShell 5.1 `powershell.exe` 不是正式 validation runtime。
-- 執行 repository-owned PowerShell tooling 前，至少先做 `pwsh --version` preflight，必要時確認 `$PSVersionTable.PSEdition -eq 'Core'`。`pwsh` 不存在或 runtime 不符合時，分類為 `TOOLCHAIN` prerequisite／version mismatch，不得 silent fallback 到 `powershell.exe`，也不得為此弱化 PS7 tooling 成 PS5.1 compatibility。
-- `pwsh` 存在但 command execution、filesystem 或 sandbox permission 被拒絕時，先遵守本檔 `Permission-Gated Operation`；第一次 permission denial 不得直接分類為 `TOOLCHAIN` 或 source failure。
-- Codex 不得自行 install、upgrade、downgrade 或改變 host PowerShell installation；需要 runtime change 時先 STOP 並回報／要求授權。
-- 有 durable／reproducible evidence 價值的 PowerShell validation 應記錄實際 PowerShell 7 version、`pwsh` invocation 與 tested commit SHA；普通 local command 不需因此擴張永久文件。
-- PowerShell 5.1 compatibility 目前不是正式支援要求；若未來需要 dual-support，另建獨立 compatibility task，逐支 script 做 parser／execution validation。本專案目前沒有 tracked `.ps1`，不要為此建立 deferred task。
+- Windows／PowerShell local runtime contract 僅在 repository-owned tooling 存在或當次 Task 相關時，route 至 common playbook `TOOLCHAIN.md`；目前本 repository 沒有 tracked `.ps1`，不在此重複維護通用 runtime policy。
 
 ## Repository file roles and update thresholds
 
@@ -76,15 +69,12 @@
 
 ## Repository reading and evidence
 
-採 progressive expansion：Level 0（diff/error/log/evidence）→ Level 1（direct symbol）→ Level 2（caller/callee）→ Level 3（完整相關檔案）→ Level 4（module/directory）→ Level 5（repository-wide）。只有上一級不足時才擴大。
-
-Debug 流程：Evidence → Root Cause → Focused Patch → Targeted Validation。Root cause 分類為 `CONFIRMED ROOT CAUSE`、`HIGH-CONFIDENCE LIKELY ROOT CAUSE` 或 `INSUFFICIENT OBSERVABILITY`；後者先增加最小 diagnostics，不直接重構。
-
-同一 non-compile operational root cause 預設最多自動 retry 1 次；第二次仍失敗即 STOP 並重新分類為 `SOURCE`、`TOOLCHAIN`、`ENVIRONMENT`、`INFRASTRUCTURE`、`SERVICE`、`AUTHENTICATION`、`AUTHORIZATION` 或 `HARDWARE_REQUIRED`。Permission gate 尚未解除前不屬於上述 operational failure taxonomy。Compile／source-fix retry 若本檔、正式 validation contract 或明確 Stage 另有上限，服從該正式規則；Permission-Gated Operation resolution 不計入 operational retry。`AUTHENTICATION`／`AUTHORIZATION` failure 不得以擴大 sandbox／network permission、blind retry、提高 credential privilege 或 production source patch 猜測修復。Infrastructure／service error 重複兩次時停止 coding loop。
+- Progressive reading、debug/root-cause、retry taxonomy 與 validation ladder 依 common playbook routing（分別 route 至 `REPOSITORY_EXECUTION.md`／`DEBUG_VALIDATION.md` 等最低必要章節）；不因本 repository 而完整複製 playbook。
+- 本 repository-specific evidence rule：沒有實體 evidence 的 Bench、Hardware、Vehicle 層級一律標記 Pending，不得由 software／compile evidence 推導。
 
 ## Validation and hardware evidence
 
-優先順序：static check → targeted verifier → targeted test → relevant build → required build matrix → full regression。明確區分 Software、Compile、Static/Test、Bench、Hardware、Network、Production PASS；沒有實體 evidence 的層級標記 Pending。
+Validation ladder、evidence recording 與 failure handling route 至 common playbook `DEBUG_VALIDATION.md`。本 repository-specific rule：沒有實體 evidence 的 Bench、Hardware、Vehicle 層級一律標記 Pending，不得由 software／compile evidence 推導。
 
 ## Hardware abstraction
 
