@@ -32,10 +32,11 @@
 - 已由使用者授權的 Task／Stage 所必需的 Git、build、test、toolchain 或 filesystem 操作，若因 sandbox、filesystem 或 execution permission 被拒絕，先判斷是否只是可由授權解除的 permission gate。
 - 若該 gate 可解除且執行環境支援 permission escalation，向使用者要求完成目前必要操作的最小權限。Permission request 必須說明 command／operation、為何本 Task／Stage 必須執行、被拒絕的 resource/path（若有）與最小 permission scope。
 - 第一次單純 permission denial 不得直接判定 production source、repository、Git remote、toolchain 或 environment 故障。使用者批准只授權重試原本被 gate 阻擋的必要操作，不代表擴大 Task scope、修改額外檔案、開始下一 Stage 或執行其他高風險 Git 操作。
-- 若使用者拒絕、環境無法要求所需權限，或取得必要權限後相同操作仍失敗，才依 evidence 分類為 `ENVIRONMENT`、`INFRASTRUCTURE`、`TOOLCHAIN`、`SERVICE` 等 operational failure。
+- 若使用者拒絕、環境無法要求所需權限，或取得必要權限後相同操作仍失敗，才依 evidence 分類為 `SOURCE`、`TOOLCHAIN`、`ENVIRONMENT`、`INFRASTRUCTURE`、`SERVICE`、`AUTHENTICATION`、`AUTHORIZATION` 或 `HARDWARE_REQUIRED` 等 operational failure。
 - Permission request／approval 不計 operational retry；permission denial → request → approval → 原操作重試屬於 permission gate resolution。只有取得必要權限後操作本身仍真正失敗，才開始計算 operational failure retry cap。
 - `git fetch origin` 遇到 `.git/FETCH_HEAD: Permission denied`、Git lock/ref file 無法建立、sandbox 阻擋 repository metadata 寫入或其他明確 filesystem permission denial 時，優先套用本節，不先判定 environment failure。
 - 禁止以 permission workaround 繞過安全規則：`sudo`、`chmod -R 777`、`reset --hard`、force push、自行刪除 `.git/FETCH_HEAD`、未確認原因就刪除 `.git/index.lock` 或其他 lock、重新 clone 覆蓋 working tree、stash/delete/discard unknown user work、自行 merge/rebase/cherry-pick，或以另一 repository 繞過目前問題。
+- External network、external API／CLI／HTTPS、remote service、package／dependency retrieval 與 credential capability 等 execution boundary，遵守最新版 `masini1491/ai-development-playbook` 的 `REPOSITORY_EXECUTION.md`（Authorization／Capability Layers、Permission-Gated Operation、External network／service boundary、Remote Git Permission Gate）。本 repository 更嚴格的 Git safety、fast-forward-only 與 forbidden workaround 規則繼續適用；任何 permission／network approval 或 credential capability 都不會擴張 Task／Stage authorization。
 
 ## Short-launch queue semantics
 
@@ -79,7 +80,7 @@
 
 Debug 流程：Evidence → Root Cause → Focused Patch → Targeted Validation。Root cause 分類為 `CONFIRMED ROOT CAUSE`、`HIGH-CONFIDENCE LIKELY ROOT CAUSE` 或 `INSUFFICIENT OBSERVABILITY`；後者先增加最小 diagnostics，不直接重構。
 
-同一 non-compile operational root cause 預設最多自動 retry 1 次；第二次仍失敗即 STOP 並重新分類為 `SOURCE`、`TOOLCHAIN`、`ENVIRONMENT`、`INFRASTRUCTURE` 或 `SERVICE`。Compile／source-fix retry 若本檔、正式 validation contract 或明確 Stage 另有上限，服從該正式規則；Permission-Gated Operation resolution 不計入 operational retry。Infrastructure／service error 重複兩次時停止 coding loop。
+同一 non-compile operational root cause 預設最多自動 retry 1 次；第二次仍失敗即 STOP 並重新分類為 `SOURCE`、`TOOLCHAIN`、`ENVIRONMENT`、`INFRASTRUCTURE`、`SERVICE`、`AUTHENTICATION`、`AUTHORIZATION` 或 `HARDWARE_REQUIRED`。Permission gate 尚未解除前不屬於上述 operational failure taxonomy。Compile／source-fix retry 若本檔、正式 validation contract 或明確 Stage 另有上限，服從該正式規則；Permission-Gated Operation resolution 不計入 operational retry。`AUTHENTICATION`／`AUTHORIZATION` failure 不得以擴大 sandbox／network permission、blind retry、提高 credential privilege 或 production source patch 猜測修復。Infrastructure／service error 重複兩次時停止 coding loop。
 
 ## Validation and hardware evidence
 
