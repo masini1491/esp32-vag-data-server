@@ -51,6 +51,16 @@
 - UI、network、storage clients 依賴 VehicleData／application-facing interface；核心協議不得反向依賴 client。避免不必要 global mutable state 與 platform singleton，以維持 host testing／dependency injection 能力。
 - 等 ISO-TP → OBD／UDS → Brand Layer → Vehicle Profile → VehicleData 的實際資料流穩定後，再評估 library extraction；目前不要建立 `library.properties`、package、另一個 repository、semantic versioning 或未使用的抽象層。
 
+## Windows / PowerShell toolchain contract
+
+- Windows 可作為 interactive／local development environment；這不要求 GitHub Actions、host CI 或其他 cross-platform validation 改用 Windows。現有 Linux／Ubuntu CI 與非 PowerShell tooling 保持原樣。
+- 未來所有 repository-owned `.ps1` tooling 預設使用 `pwsh`／`pwsh.exe`（PowerShell 7），且 `$PSVersionTable.PSEdition` 必須為 `Core`；Windows PowerShell 5.1 `powershell.exe` 不是正式 validation runtime。
+- 執行 repository-owned PowerShell tooling 前，至少先做 `pwsh --version` preflight，必要時確認 `$PSVersionTable.PSEdition -eq 'Core'`。`pwsh` 不存在或 runtime 不符合時，分類為 `TOOLCHAIN` prerequisite／version mismatch，不得 silent fallback 到 `powershell.exe`，也不得為此弱化 PS7 tooling 成 PS5.1 compatibility。
+- `pwsh` 存在但 command execution、filesystem 或 sandbox permission 被拒絕時，先遵守本檔 `Permission-Gated Operation`；第一次 permission denial 不得直接分類為 `TOOLCHAIN` 或 source failure。
+- Codex 不得自行 install、upgrade、downgrade 或改變 host PowerShell installation；需要 runtime change 時先 STOP 並回報／要求授權。
+- 有 durable／reproducible evidence 價值的 PowerShell validation 應記錄實際 PowerShell 7 version、`pwsh` invocation 與 tested commit SHA；普通 local command 不需因此擴張永久文件。
+- PowerShell 5.1 compatibility 目前不是正式支援要求；若未來需要 dual-support，另建獨立 compatibility task，逐支 script 做 parser／execution validation。本專案目前沒有 tracked `.ps1`，不要為此建立 deferred task。
+
 ## Repository file roles and update thresholds
 
 - `AGENTS.md` 是永久工作規則。

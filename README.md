@@ -88,7 +88,7 @@ CAN / OBD-II / UDS / Passive CAN
 
 ### Development tools
 
-預計使用 Arduino IDE、Git、GitHub、Python tools、PC-side protocol/unit tests，以及適當的 Mock HAL / mock TWAI / timing。Python 主要用於 profile building、MCD/data conversion、trace parsing 與 test-vector generation，不會執行於 ESP32 firmware。
+預計使用 Arduino IDE、Git、GitHub、Python tools、PC-side protocol/unit tests，以及適當的 Mock HAL / mock TWAI / timing。Windows interactive/local development 若執行 repository-owned PowerShell tooling，正式 runtime 為 PowerShell 7 `pwsh`；Windows PowerShell 5.1 `powershell.exe` 不是正式 validation runtime，且不得 silent fallback。現有 Linux/Ubuntu CI 不受此 local runtime contract 影響。詳細 execution policy 請見 `AGENTS.md`。Python 主要用於 profile building、MCD/data conversion、trace parsing 與 test-vector generation，不會執行於 ESP32 firmware。
 
 ## 預計輸出介面
 
