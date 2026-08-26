@@ -171,10 +171,6 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 ---
 
-## P0 — Phase 1 hardening prerequisite
-
-- [ ] **確認並修正 Arduino build layout / reproducible ESP32 build**：目前 sketch 位於 `src/src.ino`，實作位於 `src/hal/`、`src/core/` 等子目錄。確認標準 Arduino IDE / Arduino CLI build 是否真的會編譯 TWAI backend 與相關 source；若不會，採最小且 library-ready 的 repository layout 修正，並建立可重現的 ESP32-S3 compile validation。此項完成前，不應把既有 ESP32 Compile PASS 視為完整 backend build evidence。
-
 ## P1 — Confirmed defects
 
 - [ ] **Classic CAN RX DLC boundary**：`Esp32TwaiCan::receive()` 不得在 `data_length_code > 8` 時讀寫固定 8-byte buffer 範圍外。對 malformed / non-compliant Classic CAN frame 採明確 reject/drop policy，不得靜默把錯誤 frame 交給未來 ISO-TP。
@@ -195,51 +191,13 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 - [ ] **64-bit monotonic timestamp** — Deferred：目前 `frame.timestamp` 使用 Arduino `millis()`；長時間 uptime 約 49.7 天 rollover 的問題留到真正需要 frame freshness / long-running VehicleData semantics 時處理。Phase 2 timeout 優先使用獨立 `Clock` abstraction。
 - [ ] **Generic namespace 命名** — Deferred：Generic Core 目前仍使用 `vag_data` namespace。等 library extraction 或第一個非 VAG consumer 成為實際工作時，再評估是否改為 brand-neutral namespace；現在不為命名進行大規模 churn。
-- [ ] **ESP32 backend CI coverage** — Deferred until build layout is fixed：host CI 目前不編譯真正的 ESP32 TWAI backend。先完成 P0 build-layout/reproducible build，再決定是否加入 Arduino-ESP32 compile CI 或其他最小 backend compile gate。
+- [ ] **ESP32 backend CI coverage** — Deferred：host CI 目前不編譯真正的 ESP32 TWAI backend；後續再決定是否加入 Arduino-ESP32 compile CI 或其他最小 backend compile gate。
 
 ---
 
 # Codex 執行計畫 — 等流量恢復後逐階段執行
 
 以下 Prompt 是為上述未完成項目預先保存的執行方案。**每次只能在使用者明確授權該 Stage 後執行該 Stage；不得因為讀到後續 Stage 就提前處理。** 每個 Stage 都繼承本檔案前面的 remote-sync bootstrap、patch/validation、queue lifecycle 與 short-launch 共通規則；Stage Prompt 不重複這些內容。
-
-## Stage 2 — Arduino build layout 與可重現 ESP32 backend compile
-
-**推薦模型：** Luna  
-**推理強度：** Medium  
-**推薦理由：** 問題已定位，但涉及 Arduino sketch recursive compilation、repository layout 與實際 backend 是否進入 build，需中等推理與 build evidence。  
-**是否值得先用較便宜模型做前置蒐證：** 否；ChatGPT 已完成主要前置蒐證。先由 Luna 用 repository/本機 toolchain 證實，不重新做大範圍 web research。  
-**Context 建議：** Level 0→3；先讀 root layout、`src/src.ino`、直接相關 source/header、現有 build/CI 文件。  
-**Execution mode：** Evidence → Root Cause → minimal layout patch → reproducible compile。  
-**Dependency / 觸發條件：** Stage 1 + Stage 1B PASS。  
-**Escalation 條件：** 若最小修正會迫使大規模 build-system 重設計、跨 framework 遷移或無法取得足夠 build evidence，STOP 並回報；不要自行升模型。
-
-### Codex Prompt
-
-```text
-本次只執行 Stage 2：確認並修正 Arduino build layout，讓 ESP32-S3 compile evidence 能證明真正的 TWAI backend 與相關 source 有被編譯。不要同時修 CAN frame、RTR、BUS_OFF、MockCan 或 ISO-TP。
-
-Evidence first：
-1. 檢查 repository/sketch layout，特別是 `src/src.ino` 與 `src/hal/`、`src/core/`、`src/config/` 等。
-2. 用標準 Arduino IDE / Arduino CLI 的實際 build semantics 或可重現 compile command，確認現況是否真的編譯 `esp32_twai_can.cpp`；不要只因空 sketch compile success 就判定 backend PASS。
-3. 將 root cause 分類成 CONFIRMED ROOT CAUSE / HIGH-CONFIDENCE LIKELY ROOT CAUSE / INSUFFICIENT OBSERVABILITY。
-
-若確認 layout 有問題：
-- 採最小、library-ready 的 layout 修正。
-- 不改 protocol behavior，不開始 ISO-TP，不做 namespace 大改。
-- 優先讓 standard Arduino build 自然包含需要的 source，而不是用脆弱的臨時 copy/script 掩蓋 layout 問題。
-- 保持 Board Profile → HardwareConfig → HAL 邊界。
-
-Validation：
-- 必須取得可重現的 ESP32-S3 compile evidence。
-- evidence 必須能證明 `Esp32TwaiCan` backend 實際參與編譯，而非只有 `.ino`。
-- 記錄 toolchain/version、board/FQBN、實際 compile command、tested commit SHA。
-- 若 host tests 因 layout 變動受影響，也跑 targeted host build/test。
-
-成功後同步更新 TASKS.md：移除 P0 build-layout task並移除整個 Stage 2 Prompt；若 ESP32 backend CI coverage 已因此變得可直接實作，可將 Deferred 項目改為明確下一步，但本 Stage 不要自行新增大型 CI 系統。
-
-回報繁體中文：Evidence、Root Cause、Focused Patch、Validation、變更檔案、commit SHA。
-```
 
 ## Stage 3 — Portable CAN contract 與 host-test safety
 
