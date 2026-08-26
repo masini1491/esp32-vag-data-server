@@ -70,6 +70,7 @@
 ## Repository reading and evidence
 
 - Progressive reading、debug/root-cause、retry taxonomy 與 validation ladder 依 common playbook routing（分別 route 至 `REPOSITORY_EXECUTION.md`／`DEBUG_VALIDATION.md` 等最低必要章節）；不因本 repository 而完整複製 playbook。
+- Operational failure taxonomy 固定為 `SOURCE`、`TOOLCHAIN`、`ENVIRONMENT`、`INFRASTRUCTURE`、`SERVICE`、`AUTHENTICATION`、`AUTHORIZATION`、`HARDWARE_REQUIRED`；permission gate resolution 不計 operational retry，gate 尚未解除前不分類為上述 failure。`AUTHENTICATION`／`AUTHORIZATION` 不得以擴大 sandbox／network permission、blind retry、提高 credential privilege 或 production source patch 猜測修復；既有 non-compile retry cap 與 compile/source-fix override semantics 維持不變。
 - 本 repository-specific evidence rule：沒有實體 evidence 的 Bench、Hardware、Vehicle 層級一律標記 Pending，不得由 software／compile evidence 推導。
 
 ## Validation and hardware evidence

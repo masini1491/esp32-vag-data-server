@@ -133,8 +133,8 @@ Operational failure 分類固定使用：
 - 本分類用於 operational / execution failure，不取代既有 Root Cause 三分類 `CONFIRMED ROOT CAUSE` / `HIGH-CONFIDENCE LIKELY ROOT CAUSE` / `INSUFFICIENT OBSERVABILITY`。
 - 同一 root cause 的**非 compile operational retry 最多 1 次**；第二次仍失敗就 STOP，分類 failure，保存最小可重現 evidence 並回報，不進入無限重試或換模型迴圈。
 - Permission gate resolution 不計 operational retry；只有取得必要權限後操作本身仍失敗，才依本節 taxonomy / retry cap 處理。詳細 permission request、approval 與禁止 workaround 規則以 `AGENTS.md` 為準。
-- 只有 `SOURCE` failure 可直接支持繼續修改 source；`TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `HARDWARE_REQUIRED` 必須先處理或等待對應外部條件，不得把非 source failure 猜成 source bug 後繼續 patch。
-- `TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `HARDWARE_REQUIRED` 本身都不是 Luna → Terra → Sol、Low → Medium → High、Multi-Agent 或更大 Context 的升級理由。
+- 只有 `SOURCE` failure 可直接支持繼續修改 source；`TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `AUTHENTICATION` / `AUTHORIZATION` / `HARDWARE_REQUIRED` 必須先處理或等待對應外部條件，不得把非 source failure 猜成 source bug 後繼續 patch。
+- `TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `AUTHENTICATION` / `AUTHORIZATION` / `HARDWARE_REQUIRED` 本身都不是 Luna → Terra → Sol、Low → Medium → High、Multi-Agent 或更大 Context 的升級理由。
 - 若 `AGENTS.md`、正式 validation 規則或特定 Stage 已有 compile-fix retry 上限，原規則完整保留；本節的 non-compile operational retry cap 不覆蓋、不放寬也不取代 compile-fix retry 規則。
 
 ## Codex patch / validation 共通規則
