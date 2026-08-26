@@ -18,6 +18,9 @@ enum class CanStatus : std::uint8_t {
   InvalidConfig,
   NoData,
   TxFailed,
+  DriverError,
+  RxOverflow,
+  BusOff,
 };
 
 struct CanFrame {

@@ -64,12 +64,22 @@ CanStatus Esp32TwaiCan::initialize(const HardwareConfig& config) {
   }
 
   if (installed_ || started_) {
-    stop();
+    const CanStatus cleanup = stop();
+    if (cleanup != CanStatus::Ok) {
+      return cleanup;
+    }
   }
 
   twai_general_config_t general = TWAI_GENERAL_CONFIG_DEFAULT(
       static_cast<gpio_num_t>(config.canTxGpio),
       static_cast<gpio_num_t>(config.canRxGpio), TWAI_MODE_NORMAL);
+  general.rx_queue_len = 16;
+  general.alerts_enabled = TWAI_ALERT_RX_QUEUE_FULL |
+                           TWAI_ALERT_RX_FIFO_OVERRUN |
+                           TWAI_ALERT_BUS_OFF |
+                           TWAI_ALERT_TX_FAILED |
+                           TWAI_ALERT_BUS_ERROR |
+                           TWAI_ALERT_ERR_PASS;
   twai_filter_config_t filter = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
   if (twai_driver_install(&general, &timing, &filter) != ESP_OK) {
@@ -78,7 +88,11 @@ CanStatus Esp32TwaiCan::initialize(const HardwareConfig& config) {
   installed_ = true;
 
   if (twai_start() != ESP_OK) {
-    twai_driver_uninstall();
+    if (twai_driver_uninstall() != ESP_OK) {
+      installed_ = true;
+      started_ = false;
+      return CanStatus::DriverError;
+    }
     installed_ = false;
     return CanStatus::InvalidConfig;
   }
@@ -92,12 +106,14 @@ CanStatus Esp32TwaiCan::stop() {
   }
 
   CanStatus result = CanStatus::Ok;
-  if (started_ && twai_stop() != ESP_OK) {
-    result = CanStatus::NotInitialized;
+  if (started_) {
+    if (twai_stop() != ESP_OK) {
+      return CanStatus::DriverError;
+    }
+    started_ = false;
   }
-  started_ = false;
   if (twai_driver_uninstall() != ESP_OK) {
-    result = CanStatus::NotInitialized;
+    return CanStatus::DriverError;
   }
   installed_ = false;
   return result;
@@ -109,6 +125,21 @@ CanStatus Esp32TwaiCan::send(const CanFrame& frame) {
   }
   if (!frame.isValid()) {
     return CanStatus::InvalidConfig;
+  }
+
+  uint32_t alerts = 0;
+  if (twai_read_alerts(&alerts, 0) == ESP_OK) {
+    if ((alerts & TWAI_ALERT_BUS_OFF) != 0) {
+      return CanStatus::BusOff;
+    }
+    if ((alerts & TWAI_ALERT_TX_FAILED) != 0) {
+      return CanStatus::TxFailed;
+    }
+  }
+
+  twai_status_info_t status{};
+  if (twai_get_status_info(&status) == ESP_OK && status.state == TWAI_STATE_BUS_OFF) {
+    return CanStatus::BusOff;
   }
 
   twai_message_t message{};
@@ -128,6 +159,21 @@ CanStatus Esp32TwaiCan::receive(CanFrame& frame) {
     return CanStatus::NotInitialized;
   }
 
+  uint32_t alerts = 0;
+  if (twai_read_alerts(&alerts, 0) == ESP_OK) {
+    if ((alerts & (TWAI_ALERT_RX_QUEUE_FULL | TWAI_ALERT_RX_FIFO_OVERRUN)) != 0) {
+      return CanStatus::RxOverflow;
+    }
+    if ((alerts & TWAI_ALERT_BUS_OFF) != 0) {
+      return CanStatus::BusOff;
+    }
+  }
+
+  twai_status_info_t status{};
+  if (twai_get_status_info(&status) == ESP_OK && status.state == TWAI_STATE_BUS_OFF) {
+    return CanStatus::BusOff;
+  }
+
   twai_message_t message{};
   const esp_err_t result = twai_receive(&message, 0);
   if (result == ESP_ERR_TIMEOUT) {
@@ -135,6 +181,11 @@ CanStatus Esp32TwaiCan::receive(CanFrame& frame) {
   }
   if (result != ESP_OK) {
     return result == ESP_ERR_INVALID_STATE ? CanStatus::NotInitialized : CanStatus::NoData;
+  }
+
+  if (message.data_length_code > CanFrame::kClassicCanMaxPayload ||
+      (message.flags & TWAI_MSG_FLAG_RTR) != 0) {
+    return CanStatus::InvalidConfig;
   }
 
   frame.id = message.identifier;
