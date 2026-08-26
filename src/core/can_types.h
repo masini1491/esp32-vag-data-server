@@ -30,7 +30,13 @@ struct CanFrame {
   std::uint64_t timestamp{0};
 
   bool isValid() const {
-    return length <= kClassicCanMaxPayload;
+    if (length > kClassicCanMaxPayload) {
+      return false;
+    }
+    if (format == CanFrameFormat::Standard) {
+      return id <= 0x7FF;
+    }
+    return id <= 0x1FFFFFFF;
   }
 };
 

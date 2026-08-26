@@ -23,13 +23,17 @@ inline CanFrame makeFrame(CanId id, std::initializer_list<std::uint8_t> bytes,
   frame.id = id;
   frame.format = format;
   frame.length = static_cast<std::uint8_t>(bytes.size());
-  std::copy(bytes.begin(), bytes.end(), frame.payload.begin());
+  const auto copyCount = std::min(bytes.size(), frame.payload.size());
+  std::copy_n(bytes.begin(), copyCount, frame.payload.begin());
   return frame;
 }
 
 inline bool sameFrame(const CanFrame& left, const CanFrame& right) {
   if (left.id != right.id || left.format != right.format ||
       left.length != right.length || left.timestamp != right.timestamp) {
+    return false;
+  }
+  if (!left.isValid() || !right.isValid()) {
     return false;
   }
   return std::equal(left.payload.begin(), left.payload.begin() + left.length,

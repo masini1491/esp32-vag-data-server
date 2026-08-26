@@ -174,14 +174,11 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 ## P1 — Confirmed defects
 
 - [ ] **Classic CAN RX DLC boundary**：`Esp32TwaiCan::receive()` 不得在 `data_length_code > 8` 時讀寫固定 8-byte buffer 範圍外。對 malformed / non-compliant Classic CAN frame 採明確 reject/drop policy，不得靜默把錯誤 frame 交給未來 ISO-TP。
-- [ ] **CAN ID range validation**：`CanFrame::isValid()` 應驗證 Standard ID `<= 0x7FF`、Extended ID `<= 0x1FFFFFFF`；real HAL 與 MockCan contract 應一致。補 boundary+1 regression tests，避免 ESP-IDF/TWAI masking 將 invalid ID 轉成其他有效 ID。
 - [ ] **禁止複製 `Esp32TwaiCan` ownership state**：delete copy/move constructor 與 assignment（或採同等明確 ownership 設計），避免多個 wrapper instance 同時聲稱擁有同一個 legacy TWAI driver。
 
 ## P2 — Phase 1 / Phase 2 boundary hardening
 
 - [ ] **決定並實作 RTR policy**：目前 RX 會丟失 TWAI RTR semantics。Phase 2 ISO-TP 前，明確選擇保留 remote-frame metadata 或在 HAL 邊界 reject/drop RTR；不可讓 RTR 偽裝成一般 data frame。
-- [ ] **修正 host test helper malformed-input safety**：`makeFrame()` 不得把超過 8 bytes 的 initializer list 複製進固定 payload；`sameFrame()` 不得在 invalid `length > 8` 時形成 out-of-range iterator。加入 malformed-frame regression coverage。
-- [ ] **同步 MockCan lifecycle contract**：`stop()` / reinitialize 後不得保留與 real TWAI lifecycle 不一致的 stale RX frame；MockCan 對 invalid frame 的 send behavior 應與 real HAL contract 一致。
 - [ ] **釐清 TWAI stop / cleanup / reinitialize lifecycle semantics**：ESP-IDF 在 BUS_OFF 可 uninstall，但 `twai_stop()` 只接受 RUNNING。若 cleanup 實際成功，不應用誤導性的 `NotInitialized` 表示整體 stop 失敗；若 uninstall / cleanup 真正失敗，wrapper 不得無條件把 `installed_` / `started_` 宣稱清空，reinitialize 也不得忽略 cleanup failure 後繼續 install。只做最小 lifecycle / status invariant 修正；不要提前建立 speculative recovery state machine。
 - [ ] **建立最小 RX overflow observability**：目前 TWAI 使用 accept-all 且 default RX queue 很小，alerts 關閉。ISO-TP 前至少要能辨識 RX queue full / FIFO overrun / BUS_OFF 等關鍵狀態，並決定合理 queue sizing / drain strategy；不得因本項提前實作完整 FreeRTOS scheduler 或 Phase 2 concurrency architecture。
 - [ ] **釐清 CAN TX acceptance / completion / backpressure contract**：目前 `twai_transmit(..., 0)` 的 `ESP_OK` 只代表 frame 已 accepted / queued 或開始 transmission，不等同 on-wire success。Phase 2 ISO-TP 前必須明確定義 `CanHal::send() == Ok` 的語意，並讓 TX queue full、post-enqueue TX failure、BUS_OFF 等至少具有足夠且不誤導 upper layer 的 status / observability contract。不要因此提前建立完整 TX callback framework、FreeRTOS TX task、async completion system 或 ISO-TP scheduler。
@@ -198,45 +195,6 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 # Codex 執行計畫 — 等流量恢復後逐階段執行
 
 以下 Prompt 是為上述未完成項目預先保存的執行方案。**每次只能在使用者明確授權該 Stage 後執行該 Stage；不得因為讀到後續 Stage 就提前處理。** 每個 Stage 都繼承本檔案前面的 remote-sync bootstrap、patch/validation、queue lifecycle 與 short-launch 共通規則；Stage Prompt 不重複這些內容。
-
-## Stage 3 — Portable CAN contract 與 host-test safety
-
-**推薦模型：** Luna  
-**推理強度：** Medium  
-**推薦理由：** 都是已確認的 deterministic boundary/test contract 問題，可在 portable layer 與 host tests 內完成，不需要 Terra。  
-**是否值得先用較便宜模型做前置蒐證：** 否；root causes 已知。  
-**Context 建議：** Level 0→3；`can_types.h`、`can_hal.h`、`mock_can.h`、`test_helpers.h`、`tests/host/main.cpp` 與 direct caller。  
-**Execution mode：** Focused portable patch + targeted host tests。  
-**Dependency / 觸發條件：** Stage 2 PASS。  
-**Escalation條件：** 若修正需要改變公開 CAN API 的核心語意或牽涉多個未預期 consumer，STOP 回報 evidence，不自行擴 scope/模型。
-
-### Codex Prompt
-
-```text
-本次只執行 Stage 3：修正 portable CAN contract 與 host-test safety。不要修改 ESP32 TWAI runtime semantics、BUS_OFF recovery、RX alert architecture 或開始 ISO-TP。
-
-依 progressive expansion 只讀 CanFrame model、CanHal contract、MockCan、test helpers、host tests 與必要 direct caller。
-
-本 Stage 授權處理：
-1. CAN ID range validation：Standard <= 0x7FF、Extended <= 0x1FFFFFFF、length <= 8，補 boundary + boundary+1 tests。
-2. MockCan contract 與 real HAL 對 invalid frame 的基本驗證語意一致。
-3. `makeFrame()` 對 >8 bytes input 不得 OOB。
-4. `sameFrame()` 面對 invalid length 不得形成 out-of-range iterator。
-5. MockCan stop / reinitialize 不得保留與 real TWAI lifecycle 不一致的 stale RX frame。
-
-設計要求：
-- 不要為 invalid frame 新增過度複雜 error hierarchy；若現有 `CanStatus` 缺乏完美名稱，採最小一致方案並在回報說明 semantic debt。
-- 不把 VAG / Kamiq constants 放進 Generic Core。
-- 不做與本 Stage 無關的 refactor。
-
-Validation：
-- host tests 必須涵蓋 valid min/max、invalid standard 0x800、invalid extended 0x20000000、length 0/8/9、malformed helper input、MockCan stop→initialize stale RX lifecycle。
-- 使用現有 host CI/build style；若 toolchain可用，實際執行 targeted tests。
-
-成功後同步更新 TASKS.md：移除 CAN ID range、host helper malformed safety、MockCan lifecycle 三個完成項目，並移除整個 Stage 3 Prompt。不要移除尚未由本 Stage 處理的 TWAI/RTR/BUS_OFF/overflow tasks。
-
-回報繁體中文：Evidence、Root Cause、Focused Patch、Targeted Validation、commit SHA。
-```
 
 ## Stage 4 — ESP32 TWAI runtime hardening
 

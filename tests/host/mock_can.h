@@ -17,12 +17,16 @@ class MockCan final : public CanHal {
 
   CanStatus stop() override {
     initialized_ = false;
+    rxFrames_.clear();
     return CanStatus::Ok;
   }
 
   CanStatus send(const CanFrame& frame) override {
     if (!initialized_) {
       return CanStatus::NotInitialized;
+    }
+    if (!frame.isValid()) {
+      return CanStatus::InvalidConfig;
     }
     if (failNextTx_) {
       failNextTx_ = false;
