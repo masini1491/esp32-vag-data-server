@@ -173,6 +173,8 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 ## P1 — Confirmed defects
 
+- [ ] **BUS_OFF cleanup / reinitialize lifecycle**：目前 `Esp32TwaiCan::stop()` 在 wrapper `started_ == true` 時先呼叫 `twai_stop()`，失敗即直接 `DriverError`；ESP-IDF legacy TWAI contract 明確規定 `twai_stop()` 只允許 Running，而 `twai_driver_uninstall()` 可在 Stopped 或 Bus-Off 執行。若 driver 已進 BUS_OFF、wrapper 仍保留 `started_ == true`，目前流程會在可直接 uninstall 的狀態被 `twai_stop()` 擋住，導致 cleanup/reinitialize 無法完成。需依實際 driver state 做最小 lifecycle 修正；成功 uninstall 後才清 ownership flags，真正 uninstall failure 必須保留 truthful ownership state。
+- [ ] **TWAI alert destructive-read observability**：ESP-IDF `twai_read_alerts()` 會一次讀出並清除全部 triggered alerts。現在 `send()` 與 `receive()` 各自呼叫它、卻只處理自己關心的 bits，可能讓 `send()` 清掉未處理的 RX overflow alert，或讓 `receive()` 清掉未處理的 TX failure alert。需以最小 HAL-local latch/helper 或等價方式保存未處理但已讀出的 required alerts，確保 RX overflow、BUS_OFF、TX failure observability 不會因另一條 code path 先讀 alerts 而遺失；不要因此建立 background task、callback framework 或 concurrency architecture。
 
 ## P2 — Phase 1 / Phase 2 boundary hardening
 
@@ -190,6 +192,49 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 以下 Prompt 是為上述未完成項目預先保存的執行方案。**每次只能在使用者明確授權該 Stage 後執行該 Stage；不得因為讀到後續 Stage 就提前處理。** 每個 Stage 都繼承本檔案前面的 remote-sync bootstrap、patch/validation、queue lifecycle 與 short-launch 共通規則；Stage Prompt 不重複這些內容。
 
+## Stage 4R — TWAI lifecycle / alert observability correction
+
+**推薦模型：** Luna  
+**推理強度：** Medium  
+**推薦理由：** 兩個 root cause 已由 current source 與 ESP-IDF TWAI contract 確認，修改應侷限在既有 ESP32 TWAI HAL lifecycle / alert bookkeeping，不需要重新做 architecture discovery。  
+**是否值得先用較便宜模型做前置蒐證：** 否；Luna 已是最低充分模型，且 evidence 已足夠。  
+**Context 建議：** Level 0→2；最新 AGENTS/TASKS、`src/esp32_twai_can.cpp`、`src/hal/esp32_twai_can.h`、直接 CanStatus contract 與必要 compile evidence。只有本地 contract 不足時才精準核對 Arduino-ESP32 3.3.11 / ESP-IDF legacy TWAI API。  
+**Execution mode：** Focused HAL correctness patch。  
+**Dependency / 觸發條件：** Stage 4 implementation `4e77bf0` 已存在，但 review 確認上述兩個 runtime contract defect；Stage 5 暫停，先完成本 Stage。  
+**Escalation條件：** 若修正必須引入 background task、FreeRTOS synchronization、跨模組 state machine、async TX framework 或改變 Phase 2 protocol scheduling，STOP；不要自行進 Stage 4B/Terra/Sol。
+
+### Codex Prompt
+
+```text
+本次只執行 Stage 4R：TWAI lifecycle / alert observability correction。不要執行 Stage 5，也不要開始 ISO-TP / OBD / UDS / Scheduler。
+
+已確認 evidence：
+1. Current `Esp32TwaiCan::stop()` 在 `started_ == true` 時，`twai_stop()` 失敗便立即 `DriverError` 返回。ESP-IDF legacy TWAI contract：`twai_stop()` 只接受 Running；`twai_driver_uninstall()` 可在 Stopped 或 Bus-Off 執行。因此 driver 已進 BUS_OFF 而 wrapper 仍保留 `started_ == true` 時，現有流程會錯過可成功的 direct uninstall，並阻斷 reinitialize。
+2. ESP-IDF `twai_read_alerts()` 讀取時會清除全部 triggered alerts。Current `send()` 與 `receive()` 分別讀 alerts 但只處理部分 bits，因此可能互相吃掉 RX overflow / TX failed evidence。
+
+要求：
+- 修正 `stop()` / cleanup / reinitialize，使決策以實際 TWAI driver state 與正式 API contract 為準：Running 才需要 stop；Stopped / Bus-Off 可進正確 uninstall 路徑。只有 uninstall 真正成功後才把 wrapper ownership state清空；status query / stop / uninstall 真正失敗時保持 truthful state 並回報既有最適 CanStatus。不要實作 bus recovery state machine。
+- 修正 alert handling 的 destructive-read 問題。任何一次 `twai_read_alerts()` 取得的 required alerts 都不得因 caller 當下只關心另一類 bit 而永久遺失。以 HAL-local minimal latch/helper 或同等 bounded 設計保存並一次性 surface：至少 RX_QUEUE_FULL / RX_FIFO_OVERRUN → `RxOverflow`、BUS_OFF → `BusOff`、TX_FAILED → `TxFailed`。若目前啟用了沒有 contract consumer 的額外 alerts，應移除不必要 enable 或明確處理，不要留下會被無聲清除的高價值 alert。
+- `send() == Ok` 語意仍只代表 driver accepted/queued，不等於 on-wire completion。
+- 不新增 background task、callback framework、FreeRTOS scheduler、async completion system、ISO-TP-aware scheduling 或其他 Phase 2 architecture。
+
+Validation：
+- 做最小 source/static review，證明 BUS_OFF cleanup path 不再被 `twai_stop()` invalid-state 阻斷。
+- 做最小 source/static review，證明同一次 destructive alert read 的未處理 required bits會被保存，不會被 send/receive 另一條 path 吃掉。
+- 跑 relevant host tests（若 direct HAL behavior 無法 host-test，明確說明 coverage limit，不為測試而造 speculative abstraction）。
+- 跑可重現 ESP32-S3 compile，Arduino CLI / Arduino-ESP32 / FQBN 沿用正式 contract並記錄 tested SHA。
+- `git diff --check`。
+- Bench / Hardware / Vehicle 沒有實體 evidence仍保持 Pending。
+
+成功後：
+- 從 TASKS.md 移除本 Stage 對應的兩個 P1 defect 與整個 Stage 4R Prompt。
+- Stage 5 保留，且只有本 Stage PASS 後才可執行。
+- 只有 evidence 真的改變 current validation state 時才最小更新 VALIDATION / DEVELOPMENT；不要做 unrelated docs churn。
+- commit 並 push 本次授權變更。
+
+最終回報繁體中文：Baseline HEAD、Root Cause、lifecycle fix、alert preservation design、Changed files、Host validation、ESP32 compile evidence、Pending hardware evidence、TASKS cleanup、Final commit SHA、Push result。
+```
+
 ## Stage 5 — Phase 1 hardening 最終驗證、CI 與狀態同步
 
 **推薦模型：** Luna  
@@ -198,7 +243,7 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 **是否值得先用較便宜模型做前置蒐證：** 否；前面 Stage 已提供 evidence。  
 **Context 建議：** Level 0→3；TASKS、AGENTS、host tests/workflow、build layout、DEVELOPMENT/README 中 Phase 1 status。  
 **Execution mode：** Validation-first consolidation；禁止新增功能。  
-**Dependency / 觸發條件：** Stage 1 + Stage 1B + Stage 2～4 PASS；若 Stage 4B 曾被觸發，則 Stage 4B 也必須 PASS 或其剩餘 blocker 已被明確 Deferred。  
+**Dependency / 觸發條件：** Stage 1 + Stage 1B + Stage 2～4 + Stage 4R PASS；若 Stage 4B 曾被觸發，則 Stage 4B 也必須 PASS 或其剩餘 blocker 已被明確 Deferred。  
 **Escalation條件：** 若 CI/build 問題演變為大型 toolchain migration、複雜 workflow architecture 或與 product logic 無關的 infra 問題，STOP 並保留 Blocked/Deferred，不自行升模型。
 
 ### Codex Prompt
