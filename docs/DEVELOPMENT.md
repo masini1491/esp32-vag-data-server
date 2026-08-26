@@ -51,9 +51,9 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 ## Phase 1 foundation status
 
 - Software PASS：Generic CAN model、Board Profile → HardwareConfig → HAL、Mock CAN、Fake Clock 與 ESP32-S3 TWAI backend 已完成。
-- Host Test PASS（historical）：GitHub Actions host build/tests passed（run `32558147322`）；current evidence authority：`VALIDATION.md`。
+- Host Test PASS：Stage 4 local host compile/tests passed with `clang++ -std=c++17 -Wall -Wextra -pedantic -I. tests/host/main.cpp`；GitHub Actions run `32558147322` remains historical，current evidence authority：`VALIDATION.md`。
 - CAN foundation edge-case regression coverage 已建立。
-- ESP32 Compile：PASS。Stage 2 已以 Arduino CLI 1.5.1、Arduino-ESP32 3.3.11、`esp32:esp32:esp32s3` 與 `arduino-cli compile --clean --fqbn esp32:esp32:esp32s3 --warnings all src` 驗證；verbose output 證明 `src/esp32_twai_can.cpp` 實際參與 standard Arduino build，tested commit `5b50343`。詳見 `VALIDATION.md`。
+- ESP32 Compile：PASS。Stage 4 已以 Arduino CLI 1.5.1、Arduino-ESP32 3.3.11、`esp32:esp32:esp32s3` 與獨立 TEMP build path 驗證 hardened `src/esp32_twai_can.cpp`，tested commit `4e77bf0`。詳見 `VALIDATION.md`。
 - Bench PASS：Pending。
 - Hardware PASS：Pending。
 - Vehicle PASS：Pending。
