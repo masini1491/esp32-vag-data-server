@@ -1,236 +1,86 @@
 # TASKS
 
-本檔案是 ChatGPT／Codex 共用的暫存工作佇列與可執行 Prompt queue，只保留尚未完成的 TODO、Blocked、Deferred、待驗證項目。正式規格、`AGENTS.md`、architecture、spec、security policy、protocol evidence 與其他 source of truth 優先於本檔案；若衝突，以正式規格／規則為準。
+本檔案是本 repository 唯一的 active unfinished-work / executable scoped Prompt queue，只保留 TODO、Blocked、Deferred 與 Pending-validation 工作。
 
-## ChatGPT GitHub write boundary
+執行任何 Task / Stage 前，先讀最新 `AGENTS.md`，依其 routing 使用最新版 `masini1491/ai-development-playbook` 的最低必要章節；Git safety、permission gates、progressive reading、failure taxonomy、model / Context / Agent discipline、validation ladder、evidence reuse 與 Completion Evidence Guard 不在本檔重複維護。
 
-- ChatGPT 對本 repository 的 GitHub 操作僅可建立、更新或刪除根目錄 `TASKS.md`。
-- 除 `TASKS.md` 外，repository 其他檔案對 ChatGPT 一律唯讀；ChatGPT 可讀取 source、tests、`AGENTS.md`、architecture、docs、workflow 等進行分析、code review、規劃與產生 Codex Prompt，但不得直接修改、建立、刪除或提交其他 repository 檔案。
-- 實際 source code、tests、docs、workflow、`AGENTS.md` 等修改交由使用者當次明確授權的 Codex 工作處理，除非使用者日後明確變更此限制。
-
-## Queue lifecycle
-
-- `TASKS.md` 只保留尚未完成工作；Git commit/history 才是完成紀錄，不建立 Completed 區塊，也不把本檔案當 changelog。
-- Codex 每次只執行使用者當次明確授權的 Task/Stage，不得因看到本檔案就自行完成整份 queue。
-- 新發現且確實需要後續執行的 bug、改善或驗證工作可加入本檔案；不要加入沒有實際行動價值的想法。
-- 成功完成並驗證一個 Task/Stage 後，直接刪除或更新對應 unfinished item；若該 Stage 的完整 Prompt 已不再需要，也一併移除該 Stage Prompt，避免本檔案累積成歷史紀錄。
-- 若 validation 失敗、evidence 不足或遇到環境 blocker，不得移除 task；改為 `Blocked` 或保留 unfinished 狀態，簡短記錄 blocker、已知 evidence 與解除條件。
-- 完全沒有任何 unfinished work 時刪除 `TASKS.md`；未來有新工作時再重新建立。
-
-### 一次性小型 maintenance 不必進 TASKS.md
-
-`TASKS.md` 是「未完成、需要追蹤、需要未來再次執行」的 queue，不是所有微小修改都必須先建立 task。
-
-若工作同時具備以下特徵，可不寫入 `TASKS.md`，由 ChatGPT 直接產生一次性的短 Codex Prompt：
-- 一次性工作。
-- 已知修改位置。
-- 已知修改內容或 root cause 已確認。
-- scope 極小、風險低。
-- 完成後沒有後續追蹤價值，也不需要保留為 unfinished queue。
-- 不影響 project behavior、architecture、protocol、security、hardware、persistence、runtime state 或重要 validation state。
-
-典型例子：
-- 單行或少量文件 wording 修正。
-- 已知位置的 typo / 過期術語修正。
-- 單純排序、格式、標題或註解整理。
-- 不影響 project behavior / architecture / protocol / security / hardware / validation state 的小型 documentation maintenance。
-- 已知 root cause、scope 極小、完成後不需要保留為 unfinished queue 的 maintenance。
-
-這類一次性 maintenance 通常建議：
-- **推薦模型：** Luna
-- **推理強度：** Low
-- **Context：** Level 0→1
-- **Execution mode：** Focused patch
-- **Agent：** 1
-
-即使不進 `TASKS.md`，Codex 仍必須遵守最新 `AGENTS.md` 的安全 remote-sync、scope、Git、validation 與 commit/push 規則；一次性短 Prompt 不得繞過正式 source of truth 或 Git safety。
-
-若符合以下任一情況，則應寫入 `TASKS.md`：
-- 需要後續追蹤。
-- 目前為 Blocked / Deferred / Pending-validation。
-- 工作分成多個 Stage。
-- 有 dependency / trigger。
-- root cause 尚未完全確認。
-- 可能需要之後接續 implementation。
-- 會實質影響 project behavior、architecture、protocol、security、hardware、persistence、runtime state 或重要 validation state。
-- 若現在不記錄，之後容易遺漏。
-
-## 模型與執行設定的角色
-
-每個 Stage / Task 中的「推薦模型」「推理強度」「Context」「Execution mode」都是 ChatGPT 規劃時保存的**建議值與回顧依據**，不是 Codex 自動切換模型的指令。
-
-真正執行前：
-- 使用者與 ChatGPT 依最新 GitHub / `TASKS.md` 狀態討論要執行的 Stage。
-- ChatGPT 提供建議模型與推理強度。
-- **使用者在 Codex UI 手動設定模型與推理強度。**
-- Codex 不得自行升級 Luna → Terra → Sol，也不得自行提高 Low → Medium → High；遇到 escalation 條件時先 STOP 並回報 evidence，由使用者決定是否換模型/強度重新執行。
-
-模型選擇原則：使用能安全完成目前任務的最低成本模型。
-- **Luna**：已知 root cause、機械式修改、Git、文件、搜尋整理、targeted tests、低風險 focused patch。
-- **Terra**：一般程式開發、整合、debug、runtime/state ownership，或 Luna 已有 evidence 顯示需要更高階局部推理。
-- **Sol**：只考慮高風險跨模組、安全、協議、併發、架構等複雜推理；不得無 evidence 直接升級。
-- 預設單一 Agent；不預設 Multi-Agent、Fast、Ultra、最大 Context 或 full-repository scan。
-
-每個新增的 Codex Stage / Task 應盡量包含：
-- 推薦模型：Luna / Terra / Sol
-- 推理強度：Low / Medium / High
-- 推薦理由
-- 是否值得先用較便宜模型做前置蒐證
-- Context 建議
-- Execution mode 建議
-- dependency / 觸發條件
-- escalation 條件
-- 完整但 scoped 的 Codex Prompt
-- targeted validation
-- 成功後如何更新 `TASKS.md`
-
-## Progressive Repository Reading — 所有 Stage 共通
-
-Repository 讀取採逐級擴張，目標是用完成目前任務所需的最小 Context 取得足夠 evidence：
-
-- **Level 0**：最新 `TASKS.md`、當前 diff / error / log / build evidence、Git preflight 與當次使用者授權。
-- **Level 1**：直接相關 symbol / target / test。
-- **Level 2**：直接 caller / callee、owner、直接 dependency。
-- **Level 3**：完整 relevant file。
-- **Level 4**：直接相關 module / directory。
-- **Level 5**：repository-wide search / read。
-
-執行要求：
-- 預設從 Level 0 → 1 → 2；若在較低 Level 已有足夠 evidence，就停止擴張。
-- 只有 evidence 不足，且能指出「目前缺哪一個具體答案／關聯」時，才逐級擴張到下一 Level。
-- 不得為了熟悉 repository、建立一般背景知識或「可能有關」而直接做 repo-wide scan。
-- repository size、檔案數量或可用 Context 很大，本身都不是擴張讀取範圍或提高 Context 的理由。
-- Stage 自己的 `Context 建議` 若更窄，優先遵守更窄 scope；若確需超過建議 Level，必須由 evidence 驅動並在回報說明理由。
-
-## Codex remote-sync bootstrap — 所有 Stage 共通
-
-Codex 本機 repository 可能落後 GitHub。每次執行 `TASKS.md` 中的工作前，必須先安全同步 remote，再讀最新版規則與 queue：
-
-1. 確認 repository identity。
-2. 記錄 `git status --short`、目前 branch、HEAD。
-3. `git fetch origin`。
-4. 若必要 Git / build / test / toolchain / filesystem 操作遭 sandbox / filesystem / execution permission denial，遵守 `AGENTS.md` 的 `Permission-Gated Operation`；可向使用者要求完成目前 Stage 所需的最小權限，不得自行繞過。
-5. 若目前為預期 branch（通常 `main`）、working tree clean，且 local 可由 `origin/main` fast-forward，才使用 fast-forward-only 同步。
-6. 若 local 已與 `origin/main` 相同，直接繼續。
-7. 若 dirty、unexpected branch、local ahead/diverged、無法 fast-forward，或 merge/rebase/cherry-pick 未完成，立即 STOP 並回報；不得自行修復。
-8. 禁止 `reset --hard`、force push、自行 merge/rebase、stash/delete/丟棄未知 user work。
-9. 同步完成後才讀最新 local `AGENTS.md` 與根目錄 `TASKS.md`。
-10. 若同步後 `TASKS.md` 已不存在，或指定 Stage 已被移除，不得依舊 prompt、舊 SHA 或聊天記憶繼續執行該工作；STOP 並回報 queue 已變更。
-
-## Operational failure taxonomy / retry cap — 所有 Stage 共通
-
-Operational failure 分類固定使用：
-- `SOURCE`
-- `TOOLCHAIN`
-- `ENVIRONMENT`
-- `INFRASTRUCTURE`
-- `SERVICE`
-- `AUTHENTICATION`
-- `AUTHORIZATION`
-- `HARDWARE_REQUIRED`
-
-規則：
-- 本分類用於 operational / execution failure，不取代既有 Root Cause 三分類 `CONFIRMED ROOT CAUSE` / `HIGH-CONFIDENCE LIKELY ROOT CAUSE` / `INSUFFICIENT OBSERVABILITY`。
-- 同一 root cause 的**非 compile operational retry 最多 1 次**；第二次仍失敗就 STOP，分類 failure，保存最小可重現 evidence 並回報，不進入無限重試或換模型迴圈。
-- Permission gate resolution 不計 operational retry；只有取得必要權限後操作本身仍失敗，才依本節 taxonomy / retry cap 處理。詳細 permission request、approval 與禁止 workaround 規則以 `AGENTS.md` 為準。
-- 只有 `SOURCE` failure 可直接支持繼續修改 source；`TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `AUTHENTICATION` / `AUTHORIZATION` / `HARDWARE_REQUIRED` 必須先處理或等待對應外部條件，不得把非 source failure 猜成 source bug 後繼續 patch。
-- `TOOLCHAIN` / `ENVIRONMENT` / `INFRASTRUCTURE` / `SERVICE` / `AUTHENTICATION` / `AUTHORIZATION` / `HARDWARE_REQUIRED` 本身都不是 Luna → Terra → Sol、Low → Medium → High、Multi-Agent 或更大 Context 的升級理由。
-- 若 `AGENTS.md`、正式 validation 規則或特定 Stage 已有 compile-fix retry 上限，原規則完整保留；本節的 non-compile operational retry cap 不覆蓋、不放寬也不取代 compile-fix retry 規則。
-
-## Codex patch / validation 共通規則
-
-所有程式修改遵循：
-
-`Evidence → Root Cause → Focused Patch → Targeted Validation`
-
-Root cause 僅使用：
-- `CONFIRMED ROOT CAUSE`
-- `HIGH-CONFIDENCE LIKELY ROOT CAUSE`
-- `INSUFFICIENT OBSERVABILITY`
-
-只有前兩者可直接 patch；第三者先增加最小 observability 或 STOP，不做猜測式重構。
-
-Validation 由小到大：static check → targeted verifier → targeted test → relevant build → required build matrix → full regression。只跑足以驗證本次 scope 的最低成本層級，不預設 full regression。
-
-若涉及 build / CI evidence，盡量保存或回報可重現資訊：toolchain/version、board/FQBN、實際 command、tested commit SHA、CI run（若適用）。不得把沒有實體 evidence 的 Bench / Hardware / Vehicle 結果宣稱為 PASS。
-
-成功驗證後：
-- 同步更新 `TASKS.md`，刪除/更新本次完成的 task/stage，不留下 Completed 紀錄。
-- 若 queue 尚有 unfinished work，保留 `TASKS.md`；若完全清空，刪除 `TASKS.md`。
-- commit 並 push 本次授權的變更；若 push 或 remote state 出現異常，STOP 並如實回報，不以 force push 解決。
-
-## Short-launch mode
-
-完整執行 Prompt 保存在本檔案。正常流程是先由使用者與 ChatGPT 討論目前該跑哪個 Stage，以及建議模型 / 推理強度；使用者在 Codex UI 手動設定後，只需貼短啟動指令，例如：
-
-```text
-先安全同步最新 origin/main（僅允許 clean、fast-forward-only；異常即 STOP）。若執行所需的 Git／filesystem／sandbox 權限不足，先向我明確要求最小必要權限／approval，說明 command、resource 與原因；未經授權不得自行繞過。同步後讀根目錄 AGENTS.md 與 TASKS.md，完整執行 TASKS.md 的「<Stage 名稱>」，只執行該 Stage。成功驗證後依 TASKS.md 規則更新 queue、commit 並 push。
-```
-
-Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權執行其他 Stage。ChatGPT 未來產生一次性短 Codex Prompt 或 Stage launcher 時，也應包含等價的 permission-escalation 句子，避免把可授權解決的 permission denial 直接當成最終 blocker。
+`TASKS.md` 本身不授權 Codex 自動執行其他 Stage。完成工作以 Git history 為準；成功驗證後移除對應 unfinished item / Stage Prompt，不建立 Completed 區塊。
 
 ---
 
 ## P2 — Phase 1 / Phase 2 boundary hardening
 
-- [ ] **Phase 1 hardening evidence consolidation**：Stage 4R 後 local host 與 ESP32-S3 backend compile 已取得 current evidence，current main 也已有 Host CI PASS；Stage 5 僅需依 material-change / evidence-reuse 規則完成 Phase 1 current evidence consolidation、必要缺口驗證、文件狀態同步與 final gate，不因進入 Stage 5 本身重跑已 CURRENT 的 evidence。
+- [ ] **Phase 1 hardening evidence consolidation**：Stage 4R 後 local host 與 ESP32-S3 backend compile 已取得 current evidence，current main 也已有 Host CI PASS；Stage 5 依 material-change / evidence-reuse 規則完成 Phase 1 current evidence consolidation、必要缺口驗證、文件狀態同步與 final gate。不得因進入 Stage 5 本身重跑仍為 CURRENT 的 evidence。
 
 ## Deferred
 
-- [ ] **64-bit monotonic timestamp** — Deferred：目前 `frame.timestamp` 使用 Arduino `millis()`；長時間 uptime 約 49.7 天 rollover 的問題留到真正需要 frame freshness / long-running VehicleData semantics 時處理。Phase 2 timeout 優先使用獨立 `Clock` abstraction。
-- [ ] **Generic namespace 命名** — Deferred：Generic Core 目前仍使用 `vag_data` namespace。等 library extraction 或第一個非 VAG consumer 成為實際工作時，再評估是否改為 brand-neutral namespace；現在不為命名進行大規模 churn。
-- [ ] **ESP32 backend CI coverage** — Deferred：host CI 目前不編譯真正的 ESP32 TWAI backend；後續再決定是否加入 Arduino-ESP32 compile CI 或其他最小 backend compile gate。
+- [ ] **64-bit monotonic timestamp** — Deferred：目前 `frame.timestamp` 使用 Arduino `millis()`；等真正需要 frame freshness / long-running VehicleData semantics 時再處理。Phase 2 timeout 優先使用獨立 `Clock` abstraction。
+- [ ] **Generic namespace 命名** — Deferred：Generic Core 目前仍使用 `vag_data` namespace；等 library extraction 或第一個 non-VAG consumer 成為實際工作時，再評估 brand-neutral namespace，不為命名提前 churn。
+- [ ] **ESP32 backend CI coverage** — Deferred：目前已有可重現 ESP32-S3 backend compile evidence，host CI 不編譯真實 TWAI backend。只有當 ESP32 backend 開始持續變更、manual compile validation 成為重複成本，或 repository 明確決定把 ESP32 compile 納入正式 CI / merge gate 時，再獨立評估最小 backend compile CI；Stage 5 不實作此項。
 
 ---
 
-# Codex 執行計畫 — 等流量恢復後逐階段執行
-
-以下 Prompt 是為上述未完成項目預先保存的執行方案。**每次只能在使用者明確授權該 Stage 後執行該 Stage；不得因為讀到後續 Stage 就提前處理。** 每個 Stage 都繼承本檔案前面的 remote-sync bootstrap、patch/validation、queue lifecycle 與 short-launch 共通規則；Stage Prompt 不重複這些內容。
-
-## Stage 5 — Phase 1 hardening 最終驗證、CI 與狀態同步
+## Stage 5 — Phase 1 hardening 最終 evidence consolidation / state sync
 
 **推薦模型：** Luna  
 **推理強度：** Medium  
-**推薦理由：** 主要工作是驗證、CI/build evidence、文件狀態同步與 TASKS cleanup；需要跨結果核對但不需高階架構推理。  
-**是否值得先用較便宜模型做前置蒐證：** 否；前面 Stage 已提供 evidence。  
-**Context 建議：** Level 0→3；AGENTS、TASKS、VALIDATION、CODEX_PROGRESS、DEVELOPMENT、relevant host workflow / current GitHub Actions evidence；僅在判斷 evidence validity 時讀 build layout / backend-participation evidence，README 只在需要核對 status wording 時讀。
+**推薦理由：** 主要工作是 canonical evidence inventory、evidence validity 判讀、文件狀態同步與 queue cleanup；需要跨 evidence 核對，但不需要新增 runtime / protocol implementation。  
+**是否值得先用較便宜模型做前置蒐證：** 否；Stage 4R 已提供主要 evidence，Stage 5 本身先做 reuse-first inventory。  
+**Context 建議：** Level 0→3；`AGENTS.md`、`TASKS.md`、`VALIDATION.md`、`CODEX_PROGRESS.md`、`docs/DEVELOPMENT.md`、relevant host workflow / current GitHub Actions evidence；只有在判斷 evidence validity 時才讀 build layout / backend-participation evidence，README 僅在需要核對 Phase 1 status wording 時讀。  
 **Execution mode：** Validation-first consolidation；禁止新增功能。  
-**Dependency / 觸發條件：** Stage 1 + Stage 1B + Stage 2～4 + Stage 4R PASS（已滿足）；若 Stage 4B 曾被觸發，則 Stage 4B 也必須 PASS 或其剩餘 blocker 已被明確 Deferred。Stage 5 現在可在使用者明確授權後執行，但不代表本 Stage 已執行或 Phase 2 已獲准。
-**Escalation條件：** 若 CI/build 問題演變為大型 toolchain migration、複雜 workflow architecture 或與 product logic 無關的 infra 問題，STOP 並保留 Blocked/Deferred，不自行升模型。
+**Agent：** 1  
+**Dependency / 觸發條件：** Stage 1 + Stage 1B + Stage 2～4 + Stage 4R PASS；目前 Stage 4R dependency 已滿足。Stage 5 可在使用者明確授權後執行，但這不代表 Stage 5 已完成或 Phase 2 已獲准。  
+**Escalation 條件：** 若 evidence inventory 顯示 material source / toolchain / validation-backend change、current evidence 無法證明 Phase 1 contract，或問題演變成大型 toolchain / workflow architecture / product-logic修改，STOP 並保留 evidence；不得自行升模型、擴大 Context、增加 Agent 或開始 Phase 2。
 
 ### Codex Prompt
 
 ```text
-本次只執行 Stage 5：Phase 1 hardening 最終驗證與狀態同步。不要新增 ISO-TP、OBD、UDS、VehicleData 或任何 Phase 2+ 功能。
+本次只執行 Stage 5：Phase 1 hardening 最終 evidence consolidation / state sync。
+
+不要新增 ISO-TP、OBD、UDS、VehicleData 或任何 Phase 2+ 功能。
+不要修改 production source / tests。
+不要新增或修改 ESP32 backend CI workflow；「ESP32 backend CI coverage」保持 Deferred，除非未來另有明確授權 Stage。
+
+依最新 AGENTS.md 完成 repository identity、workspace/permission、safe remote-sync 等 execution gates；同步後重讀最新 AGENTS.md / TASKS.md，再依 routing 只讀本 Stage 的最低必要 Playbook 章節。
 
 工作：
-1. 建立 canonical evidence inventory：確認 current HEAD、current source 與 tested `2e4ec1d` 的關係、current Host CI、local host evidence、ESP32 compile/backend-participation evidence，以及 current TASKS / VALIDATION state。
-2. 對各 evidence 分類為 `CURRENT`、`SUPERSEDED`、`REVALIDATION_REQUIRED` 或 `Pending`。只有 material change 才使相關 evidence 失效；進入 Stage 5 本身不是 revalidation trigger。
-3. Reuse first：若 Stage 4R 後 TWAI / relevant source、Arduino-ESP32 / toolchain / FQBN、build layout / backend participation contract 與 validation backend 均未變，直接 reuse `2e4ec1d` ESP32 compile、`2e4ec1d` local host 與 current main Host CI evidence，不為形式重跑相同 validation。
-4. 只驗證實際缺口：evidence 缺失、Stage 5 造成 material source/config/toolchain change、validation backend 改變、新增 ESP32 backend CI gate、canonical evidence 無法證明 current contract，或 formal repository gate 另有要求時才重跑。
-5. Review Phase 1 foundation docs/README/DEVELOPMENT status，只修正與實際 validation evidence 不一致的文字。Hardware/Bench/Vehicle 沒有實體 evidence 必須維持 Pending。
-6. 確認沒有 brand leakage、read-only violation、TWAI type 上滲或 speculative Phase 2 implementation。
+1. 建立 canonical evidence inventory：確認 current HEAD、current source 與 Stage 4R tested commit `2e4ec1dbeb5bb050014aa610f4c1dc50fff857f6` 的關係、current GitHub Host CI、local host evidence、ESP32 compile / backend-participation evidence，以及 current TASKS / VALIDATION / project-state docs。
+2. 對各 evidence 分類為 `CURRENT`、`SUPERSEDED`、`HISTORICAL`、`REVALIDATION_REQUIRED` 或 `Pending`。只有 material change 才使相關 evidence 失效；進入 Stage 5 本身不是 revalidation trigger。
+3. Reuse first：若 Stage 4R 後 relevant source、Arduino-ESP32 / toolchain / FQBN、build layout / backend participation contract 與 validation backend均未 material change，直接 reuse Stage 4R 的 local host與 ESP32 compile evidence，以及 current main Host CI；不得為形式重跑相同 validation。
+4. 只有在 evidence 缺失、material change、formal repository gate要求，或 canonical evidence 無法證明 current contract 時，才執行最低充分的 targeted revalidation。若需要昂貴 / long-running operation，先做 deterministic preflight並依 Playbook做 bounded supervision與 phase attribution。
+5. 依 canonical evidence最小同步 project state：優先檢查 `VALIDATION.md`、`CODEX_PROGRESS.md`、`docs/DEVELOPMENT.md`；README 只有真的存在 stale Phase 1 status wording時才修改。已知 `CODEX_PROGRESS.md` 仍有「Stage 4R runtime correctness follow-up remains Pending」的 stale wording，只有 canonical evidence仍確認它過時時才修正。
+6. 確認 Generic Core / read-only / HAL boundary 沒有被既有 Stage 4R變更破壞；這一步是 bounded state review，不授權 repo-wide exploration或 speculative refactor。
+7. Bench / Hardware / Vehicle沒有實體 evidence時全部保持 Pending，不得由 host / compile / CI evidence升格。
+8. 避免 CI freshness loop：不要為了讓文件永遠記錄最後一個純 docs push所觸發的新 Host CI run，而形成 docs update → push → CI → docs update循環。final post-push CI freshness可在 Completion Evidence Guard / final report以 canonical GitHub evidence確認；source與validation contract未變時，不因純 bookkeeping run再製造另一個 docs commit。
 
-Build / CI evidence 至少回報：toolchain/version、board/FQBN、實際 command、tested commit SHA、GitHub Actions run/status（若適用）。
+Stage 5 success gate：
+- Phase 1 software / hardening evidence closure可由 current canonical evidence支持。
+- required state docs與 `VALIDATION.md` 不再有會誤導下一 Stage的 material stale claim。
+- Bench / Hardware / Vehicle仍正確維持 Pending。
+- Completion Evidence Guard已核對 baseline/final/origin SHA、scoped diff、current validation evidence與 final TASKS state。
 
-ESP32 backend CI coverage：若加入最小 ESP32 compile CI，視為新的 validation backend，必須取得自己的 current CI evidence；若引入大型 cache/toolchain/workflow complexity，保留 Deferred，不為 Phase 1 closure 硬做。不要為了讓 VALIDATION.md 永遠記錄最新一個 docs push 觸發的 CI run 而形成 docs update → push → CI → docs update 循環；source 與 validation contract 未變時，不因純 docs bookkeeping commit 的新 run 再產生另一個 docs commit。
+只有 success gate成立後，才能回報「Phase 1 software / hardening closure成立」並判斷 Phase 2 ISO-TP gate是否可開放；不得只因 Prompt執行完就自動宣稱 Phase 2可開始，也不得在本 Stage直接開始 Phase 2 implementation。
 
 TASKS.md cleanup：
-- 成功驗證後移除「Phase 1 hardening evidence consolidation」。
-- 若 ESP32 backend CI coverage 已完成，移除該 Deferred 項目；若未做，保留並清楚寫 blocker/trigger。
-- 其他已由前面 Stage 完成但仍殘留的 task，只有在 current main + validation 可證實完成時才移除。
-- Deferred timestamp / namespace 若觸發條件尚未發生，保留。
-- 完成本 Stage 後移除整個 Stage 5 Prompt。
-- 若最後仍有任何 unfinished/deferred task，TASKS.md 必須保留；只有真的完全沒有 unfinished work 時才刪除 TASKS.md。
+- Stage 5成功後移除「Phase 1 hardening evidence consolidation」。
+- 移除整個 Stage 5 Prompt。
+- 保留尚未觸發的 Deferred：64-bit monotonic timestamp、Generic namespace命名、ESP32 backend CI coverage。
+- 不自動新增 Phase 2 implementation task；先在 final report回報 Phase 2 gate判定，等待使用者 / ChatGPT後續規劃。
+- 若 Stage 5 Blocked或 evidence不足，不得移除 P2 / Stage 5；改為保留 unfinished並記錄最小 blocker / trigger。
 
-最終回報繁體中文：
-- current HEAD / commit
-- Host Test PASS/FAIL
-- ESP32 Compile PASS/FAIL
-- CI evidence
-- Bench / Hardware / Vehicle = Pending 或實際 evidence
+最終回報使用繁體中文，至少包含：
+- baseline / final HEAD、origin/main
+- evidence inventory與各 evidence validity分類
+- Host / ESP32 compile / current CI evidence（reused或revalidated）
+- 本 Stage是否實際重跑任何 validation，以及原因
+- changed files / scoped diff
+- Bench / Hardware / Vehicle = Pending或實際 evidence
 - Remaining TASKS
-- 是否可以進 Phase 2 ISO-TP
-- Stage 5 完成前確認 Phase 1 software / hardening evidence closure、Bench / Hardware / Vehicle Pending 狀態與是否真的允許開始 Phase 2；不得只因 Prompt 執行完就宣稱 Phase 2 可開始。
-- PASS / queue removal / Stage 5 gate 前套用 Completion Evidence Guard，核對 baseline/final/origin SHA、scoped diff、current validation evidence 與 final TASKS state；最後一行為 `回報時間：YYYY-MM-DD HH:mm (Asia/Taipei)`。
+- Phase 1 closure判定
+- Phase 2 ISO-TP gate判定
+- Completion Evidence Guard結果
+- push / working tree state
+
+最後一行：
+回報時間：YYYY-MM-DD HH:mm (Asia/Taipei)
 ```
