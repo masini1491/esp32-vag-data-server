@@ -6,6 +6,11 @@
 namespace vag_data {
 namespace {
 
+constexpr std::uint32_t kRequiredAlerts = TWAI_ALERT_RX_QUEUE_FULL |
+                                          TWAI_ALERT_RX_FIFO_OVERRUN |
+                                          TWAI_ALERT_BUS_OFF |
+                                          TWAI_ALERT_TX_FAILED;
+
 bool timingForBitrate(std::uint32_t bitrate, twai_timing_config_t& timing) {
   switch (bitrate) {
     case 10000:
@@ -74,12 +79,7 @@ CanStatus Esp32TwaiCan::initialize(const HardwareConfig& config) {
       static_cast<gpio_num_t>(config.canTxGpio),
       static_cast<gpio_num_t>(config.canRxGpio), TWAI_MODE_NORMAL);
   general.rx_queue_len = 16;
-  general.alerts_enabled = TWAI_ALERT_RX_QUEUE_FULL |
-                           TWAI_ALERT_RX_FIFO_OVERRUN |
-                           TWAI_ALERT_BUS_OFF |
-                           TWAI_ALERT_TX_FAILED |
-                           TWAI_ALERT_BUS_ERROR |
-                           TWAI_ALERT_ERR_PASS;
+  general.alerts_enabled = kRequiredAlerts;
   twai_filter_config_t filter = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
   if (twai_driver_install(&general, &timing, &filter) != ESP_OK) {
@@ -105,18 +105,54 @@ CanStatus Esp32TwaiCan::stop() {
     return CanStatus::Ok;
   }
 
-  CanStatus result = CanStatus::Ok;
-  if (started_) {
+  twai_status_info_t status{};
+  if (twai_get_status_info(&status) != ESP_OK) {
+    return CanStatus::DriverError;
+  }
+
+  if (status.state == TWAI_STATE_RUNNING) {
     if (twai_stop() != ESP_OK) {
       return CanStatus::DriverError;
     }
-    started_ = false;
   }
   if (twai_driver_uninstall() != ESP_OK) {
     return CanStatus::DriverError;
   }
   installed_ = false;
-  return result;
+  started_ = false;
+  pendingAlerts_ = 0;
+  return CanStatus::Ok;
+}
+
+void Esp32TwaiCan::captureAlerts() {
+  uint32_t alerts = 0;
+  if (twai_read_alerts(&alerts, 0) == ESP_OK) {
+    pendingAlerts_ |= alerts & kRequiredAlerts;
+  }
+}
+
+CanStatus Esp32TwaiCan::consumeSendAlert() {
+  if ((pendingAlerts_ & TWAI_ALERT_BUS_OFF) != 0) {
+    pendingAlerts_ &= ~TWAI_ALERT_BUS_OFF;
+    return CanStatus::BusOff;
+  }
+  if ((pendingAlerts_ & TWAI_ALERT_TX_FAILED) != 0) {
+    pendingAlerts_ &= ~TWAI_ALERT_TX_FAILED;
+    return CanStatus::TxFailed;
+  }
+  return CanStatus::Ok;
+}
+
+CanStatus Esp32TwaiCan::consumeReceiveAlert() {
+  if ((pendingAlerts_ & (TWAI_ALERT_RX_QUEUE_FULL | TWAI_ALERT_RX_FIFO_OVERRUN)) != 0) {
+    pendingAlerts_ &= ~(TWAI_ALERT_RX_QUEUE_FULL | TWAI_ALERT_RX_FIFO_OVERRUN);
+    return CanStatus::RxOverflow;
+  }
+  if ((pendingAlerts_ & TWAI_ALERT_BUS_OFF) != 0) {
+    pendingAlerts_ &= ~TWAI_ALERT_BUS_OFF;
+    return CanStatus::BusOff;
+  }
+  return CanStatus::Ok;
 }
 
 CanStatus Esp32TwaiCan::send(const CanFrame& frame) {
@@ -127,14 +163,10 @@ CanStatus Esp32TwaiCan::send(const CanFrame& frame) {
     return CanStatus::InvalidConfig;
   }
 
-  uint32_t alerts = 0;
-  if (twai_read_alerts(&alerts, 0) == ESP_OK) {
-    if ((alerts & TWAI_ALERT_BUS_OFF) != 0) {
-      return CanStatus::BusOff;
-    }
-    if ((alerts & TWAI_ALERT_TX_FAILED) != 0) {
-      return CanStatus::TxFailed;
-    }
+  captureAlerts();
+  const CanStatus alertStatus = consumeSendAlert();
+  if (alertStatus != CanStatus::Ok) {
+    return alertStatus;
   }
 
   twai_status_info_t status{};
@@ -159,14 +191,10 @@ CanStatus Esp32TwaiCan::receive(CanFrame& frame) {
     return CanStatus::NotInitialized;
   }
 
-  uint32_t alerts = 0;
-  if (twai_read_alerts(&alerts, 0) == ESP_OK) {
-    if ((alerts & (TWAI_ALERT_RX_QUEUE_FULL | TWAI_ALERT_RX_FIFO_OVERRUN)) != 0) {
-      return CanStatus::RxOverflow;
-    }
-    if ((alerts & TWAI_ALERT_BUS_OFF) != 0) {
-      return CanStatus::BusOff;
-    }
+  captureAlerts();
+  const CanStatus alertStatus = consumeReceiveAlert();
+  if (alertStatus != CanStatus::Ok) {
+    return alertStatus;
   }
 
   twai_status_info_t status{};

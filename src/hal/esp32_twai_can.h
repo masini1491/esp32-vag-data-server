@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 #include "can_hal.h"
 
 namespace vag_data {
@@ -22,8 +24,13 @@ class Esp32TwaiCan final : public CanHal {
   CanStatus receive(CanFrame& frame) override;
 
  private:
+  void captureAlerts();
+  CanStatus consumeSendAlert();
+  CanStatus consumeReceiveAlert();
+
   bool installed_{false};
   bool started_{false};
+  std::uint32_t pendingAlerts_{0};
 };
 
 }  // namespace vag_data
