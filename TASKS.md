@@ -201,7 +201,7 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 **Context 建議：** Level 0→3；最新 AGENTS/TASKS、`src/esp32_twai_can.cpp`、`src/hal/esp32_twai_can.h`、直接 CanStatus contract、validation evidence 與必要的 Arduino-ESP32 3.3.11 / ESP-IDF legacy TWAI authority。
 **Execution mode：** Focused HAL correctness patch。  
 **Dependency / 觸發條件：** Stage 4 implementation `4e77bf0` 已存在，但 review 確認上述兩個 runtime contract defect；Stage 5 暫停，先完成本 Stage。  
-**Escalation條件：** 若修正必須引入 background task、FreeRTOS synchronization、跨模組 state machine、async TX framework 或改變 Phase 2 protocol scheduling，STOP；不要自行進 Stage 4B/Terra/Sol。
+**Escalation條件：** 若修正必須引入 background task、FreeRTOS synchronization、跨模組 state machine、async TX framework 或改變 Phase 2 protocol scheduling，立即 STOP 並保留 evidence；不得自行進入 Stage 4B、升級 Sol / High、增加 Agent / Multi-Agent、擴大 Context 或開始 Phase 2 implementation。
 
 ### Codex Prompt
 
@@ -211,9 +211,12 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 Root-cause gate：
 在任何 source mutation 前，必須以 bounded、version-specific authority confirmation 核對 Arduino-ESP32 3.3.11 對應的 TWAI contract：`twai_stop()` 可接受狀態、`twai_driver_uninstall()` 可接受狀態、`twai_read_alerts()` 的 destructive/clearing semantics。確認前分類為 `HIGH-CONFIDENCE LIKELY ROOT CAUSE — version-specific contract confirmation required before source mutation`；確認後才可升為 `CONFIRMED ROOT CAUSE`。若 authority 不一致或不足，STOP，不修改 source。
 
-已確認 evidence：
-1. Current `Esp32TwaiCan::stop()` 在 `started_ == true` 時，`twai_stop()` 失敗便立即 `DriverError` 返回。ESP-IDF legacy TWAI contract：`twai_stop()` 只接受 Running；`twai_driver_uninstall()` 可在 Stopped 或 Bus-Off 執行。因此 driver 已進 BUS_OFF 而 wrapper 仍保留 `started_ == true` 時，現有流程會錯過可成功的 direct uninstall，並阻斷 reinitialize。
-2. ESP-IDF `twai_read_alerts()` 讀取時會清除全部 triggered alerts。Current `send()` 與 `receive()` 分別讀 alerts 但只處理部分 bits，因此可能互相吃掉 RX overflow / TX failed evidence。
+Current repository facts — 已確認：
+1. Current `Esp32TwaiCan::stop()` 在 wrapper `started_ == true` 時會呼叫 `twai_stop()`；若該 call 非 `ESP_OK`，目前 implementation 直接返回 `DriverError`，不繼續 uninstall。
+2. Current `send()` 與 `receive()` 都會個別呼叫 `twai_read_alerts()`，而各自只處理部分 alert bits。
+
+Pending version-specific authority confirmation：
+Stage 4R source mutation 前仍須確認 `twai_stop()` applicable driver states、`twai_driver_uninstall()` applicable driver states，以及 `twai_read_alerts()` destructive / triggered-alert clearing semantics。確認結果若支持目前 hypothesis，升為 `CONFIRMED ROOT CAUSE`；若 authority 不支持、版本不一致或 evidence 不足，STOP，不修改 source。
 
 要求：
 - 修正 `stop()` / cleanup / reinitialize，使決策以實際 TWAI driver state 與正式 API contract 為準：Running 才需要 stop；Stopped / Bus-Off 可進正確 uninstall 路徑。只有 uninstall 真正成功後才把 wrapper ownership state清空；status query / stop / uninstall 真正失敗時保持 truthful state 並回報既有最適 CanStatus。不要實作 bus recovery state machine。
