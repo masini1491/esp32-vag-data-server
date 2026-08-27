@@ -173,7 +173,7 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 ## P2 — Phase 1 / Phase 2 boundary hardening
 
-- [ ] **Phase 1 hardening 後重新取得 CI / compile evidence**：host tests 與 ESP32-S3 backend compile 都要在 hardening 後重新驗證，並以新的 commit/run 作為 Phase 1 PASS evidence；不要沿用早於 edge-case hardening 的舊 CI run。
+- [ ] **Phase 1 hardening evidence consolidation**：Stage 4R 後 local host 與 ESP32-S3 backend compile 已取得 current evidence，current main 也已有 Host CI PASS；Stage 5 僅需依 material-change / evidence-reuse 規則完成 Phase 1 current evidence consolidation、必要缺口驗證、文件狀態同步與 final gate，不因進入 Stage 5 本身重跑已 CURRENT 的 evidence。
 
 ## Deferred
 
@@ -193,9 +193,9 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 **推理強度：** Medium  
 **推薦理由：** 主要工作是驗證、CI/build evidence、文件狀態同步與 TASKS cleanup；需要跨結果核對但不需高階架構推理。  
 **是否值得先用較便宜模型做前置蒐證：** 否；前面 Stage 已提供 evidence。  
-**Context 建議：** Level 0→3；TASKS、AGENTS、host tests/workflow、build layout、DEVELOPMENT/README 中 Phase 1 status。  
+**Context 建議：** Level 0→3；AGENTS、TASKS、VALIDATION、CODEX_PROGRESS、DEVELOPMENT、relevant host workflow / current GitHub Actions evidence；僅在判斷 evidence validity 時讀 build layout / backend-participation evidence，README 只在需要核對 status wording 時讀。
 **Execution mode：** Validation-first consolidation；禁止新增功能。  
-**Dependency / 觸發條件：** Stage 1 + Stage 1B + Stage 2～4 + Stage 4R PASS；若 Stage 4B 曾被觸發，則 Stage 4B 也必須 PASS 或其剩餘 blocker 已被明確 Deferred。  
+**Dependency / 觸發條件：** Stage 1 + Stage 1B + Stage 2～4 + Stage 4R PASS（已滿足）；若 Stage 4B 曾被觸發，則 Stage 4B 也必須 PASS 或其剩餘 blocker 已被明確 Deferred。Stage 5 現在可在使用者明確授權後執行，但不代表本 Stage 已執行或 Phase 2 已獲准。
 **Escalation條件：** 若 CI/build 問題演變為大型 toolchain migration、複雜 workflow architecture 或與 product logic 無關的 infra 問題，STOP 並保留 Blocked/Deferred，不自行升模型。
 
 ### Codex Prompt
@@ -204,15 +204,16 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 本次只執行 Stage 5：Phase 1 hardening 最終驗證與狀態同步。不要新增 ISO-TP、OBD、UDS、VehicleData 或任何 Phase 2+ 功能。
 
 工作：
-1. 跑完整 relevant host tests。
-2. 跑可重現 ESP32-S3 compile，確認真正包含 ESP32 TWAI backend。
-3. 檢查 GitHub Actions / compile gate 是否足以作為新的 Phase 1 evidence。
-4. 先檢查 Stage 4R evidence，判定哪些 validation 受 material change 影響；重用仍有效的 current evidence，只重跑受影響、缺失或 current backend-required 的 evidence，不因 Stage 編號重跑完全相同 compile。
-5. 若 build layout 已固定且加入最小 ESP32 backend compile CI 明顯低風險、符合現有 workflow，可在本 Stage 實作；若會引入大型 toolchain/cache/CI complexity，保留 Deferred 並寫明原因。
-6. Review Phase 1 foundation docs/README/DEVELOPMENT status，只修正與實際 validation evidence 不一致的文字。Hardware/Bench/Vehicle 沒有實體 evidence 必須維持 Pending。
-7. 確認沒有 brand leakage、read-only violation、TWAI type 上滲或 speculative Phase 2 implementation。
+1. 建立 canonical evidence inventory：確認 current HEAD、current source 與 tested `2e4ec1d` 的關係、current Host CI、local host evidence、ESP32 compile/backend-participation evidence，以及 current TASKS / VALIDATION state。
+2. 對各 evidence 分類為 `CURRENT`、`SUPERSEDED`、`REVALIDATION_REQUIRED` 或 `Pending`。只有 material change 才使相關 evidence 失效；進入 Stage 5 本身不是 revalidation trigger。
+3. Reuse first：若 Stage 4R 後 TWAI / relevant source、Arduino-ESP32 / toolchain / FQBN、build layout / backend participation contract 與 validation backend 均未變，直接 reuse `2e4ec1d` ESP32 compile、`2e4ec1d` local host 與 current main Host CI evidence，不為形式重跑相同 validation。
+4. 只驗證實際缺口：evidence 缺失、Stage 5 造成 material source/config/toolchain change、validation backend 改變、新增 ESP32 backend CI gate、canonical evidence 無法證明 current contract，或 formal repository gate 另有要求時才重跑。
+5. Review Phase 1 foundation docs/README/DEVELOPMENT status，只修正與實際 validation evidence 不一致的文字。Hardware/Bench/Vehicle 沒有實體 evidence 必須維持 Pending。
+6. 確認沒有 brand leakage、read-only violation、TWAI type 上滲或 speculative Phase 2 implementation。
 
 Build / CI evidence 至少回報：toolchain/version、board/FQBN、實際 command、tested commit SHA、GitHub Actions run/status（若適用）。
+
+ESP32 backend CI coverage：若加入最小 ESP32 compile CI，視為新的 validation backend，必須取得自己的 current CI evidence；若引入大型 cache/toolchain/workflow complexity，保留 Deferred，不為 Phase 1 closure 硬做。不要為了讓 VALIDATION.md 永遠記錄最新一個 docs push 觸發的 CI run 而形成 docs update → push → CI → docs update 循環；source 與 validation contract 未變時，不因純 docs bookkeeping commit 的新 run 再產生另一個 docs commit。
 
 TASKS.md cleanup：
 - 成功驗證後移除「Phase 1 hardening 後重新取得 CI / compile evidence」。
@@ -230,5 +231,6 @@ TASKS.md cleanup：
 - Bench / Hardware / Vehicle = Pending 或實際 evidence
 - Remaining TASKS
 - 是否可以進 Phase 2 ISO-TP
-- PASS / queue removal / Stage 5 gate 前套用 Completion Evidence Guard，最後一行為 `回報時間：YYYY-MM-DD HH:mm (Asia/Taipei)`。
+- Stage 5 完成前確認 Phase 1 software / hardening evidence closure、Bench / Hardware / Vehicle Pending 狀態與是否真的允許開始 Phase 2；不得只因 Prompt 執行完就宣稱 Phase 2 可開始。
+- PASS / queue removal / Stage 5 gate 前套用 Completion Evidence Guard，核對 baseline/final/origin SHA、scoped diff、current validation evidence 與 final TASKS state；最後一行為 `回報時間：YYYY-MM-DD HH:mm (Asia/Taipei)`。
 ```
