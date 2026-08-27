@@ -20,5 +20,5 @@ This file is the human-readable historical project-state summary. It is not the 
 
 ## Important revalidation state
 
-- ESP32 TWAI backend participation in the standard Arduino build is proven by the existing compile evidence; Stage 4R runtime correctness follow-up remains Pending. See `VALIDATION.md` for current evidence and Pending authority.
+- ESP32 TWAI backend participation in the standard Arduino build and Stage 4R runtime hardening are reflected in the current evidence; physical behavior remains Pending. See `VALIDATION.md` for current evidence and Pending authority.
 - Phase 2 ISO-TP has not started. This summary is historical and not a second queue or validation ledger; detailed changes remain in Git history.

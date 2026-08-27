@@ -58,6 +58,6 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 - Hardware PASS：Pending。
 - Vehicle PASS：Pending。
 
-這代表 Phase 1 software foundation components 與 Stage 4R hardening 已完成，但 Phase 1 hardening 尚未關閉：Stage 5 仍未完成；Phase 2 ISO-TP 目前沒有 completion gate。這不代表實體 TWAI receive 或 vehicle validation 已完成。
+這代表 Phase 1 software foundation components、Stage 4R hardening 與 Stage 5 evidence consolidation 已完成；Phase 2 ISO-TP 尚未開始，可另行明確授權進入 implementation。這不代表實體 TWAI receive 或 vehicle validation 已完成。
 
 Phase 2 v1 implementation 是 ISO-TP over Classic CAN；future non-CAN transports 僅為 architecture boundaries，不新增 K-Line implementation phase，也不改變 Kamiq → T-Roc → RAV4 → Wish validation sequence。
