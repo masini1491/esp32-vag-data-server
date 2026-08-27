@@ -216,7 +216,7 @@ Build / CI evidence 至少回報：toolchain/version、board/FQBN、實際 comma
 ESP32 backend CI coverage：若加入最小 ESP32 compile CI，視為新的 validation backend，必須取得自己的 current CI evidence；若引入大型 cache/toolchain/workflow complexity，保留 Deferred，不為 Phase 1 closure 硬做。不要為了讓 VALIDATION.md 永遠記錄最新一個 docs push 觸發的 CI run 而形成 docs update → push → CI → docs update 循環；source 與 validation contract 未變時，不因純 docs bookkeeping commit 的新 run 再產生另一個 docs commit。
 
 TASKS.md cleanup：
-- 成功驗證後移除「Phase 1 hardening 後重新取得 CI / compile evidence」。
+- 成功驗證後移除「Phase 1 hardening evidence consolidation」。
 - 若 ESP32 backend CI coverage 已完成，移除該 Deferred 項目；若未做，保留並清楚寫 blocker/trigger。
 - 其他已由前面 Stage 完成但仍殘留的 task，只有在 current main + validation 可證實完成時才移除。
 - Deferred timestamp / namespace 若觸發條件尚未發生，保留。
