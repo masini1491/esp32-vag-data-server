@@ -197,7 +197,7 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 **推薦模型：** Terra
 **推理強度：** Medium  
 **推薦理由：** 需要處理 TWAI runtime lifecycle、state ownership 與 destructive alert bookkeeping；Terra / Medium 足以完成 bounded correctness patch。
-**是否值得先用較便宜模型做前置蒐證：** 否；Luna 已是最低充分模型，且 evidence 已足夠。  
+**是否值得先用較便宜模型做前置蒐證：** 否；version-specific contract confirmation 已是 Stage 4R 本身的 bounded evidence gate，不另開低成本前置 Stage；目前既有 execution evidence 支持 Terra / Medium 作為最低充分 implementation baseline。
 **Context 建議：** Level 0→3；最新 AGENTS/TASKS、`src/esp32_twai_can.cpp`、`src/hal/esp32_twai_can.h`、直接 CanStatus contract、validation evidence 與必要的 Arduino-ESP32 3.3.11 / ESP-IDF legacy TWAI authority。
 **Execution mode：** Focused HAL correctness patch。  
 **Dependency / 觸發條件：** Stage 4 implementation `4e77bf0` 已存在，但 review 確認上述兩個 runtime contract defect；Stage 5 暫停，先完成本 Stage。  
