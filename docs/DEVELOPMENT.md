@@ -51,13 +51,13 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 ## Phase 1 foundation status
 
 - Software PASS：Generic CAN model、Board Profile → HardwareConfig → HAL、Mock CAN、Fake Clock 與 ESP32-S3 TWAI backend 已完成。
-- Host Test PASS：Stage 4 local host compile/tests passed with `clang++ -std=c++17 -Wall -Wextra -pedantic -I. tests/host/main.cpp`；GitHub Actions run `32558147322` remains historical，current evidence authority：`VALIDATION.md`。
+- Host Test PASS：GitHub Actions run `32941791913`（`800ff97e7027bca32ab65efa0711747a13e85636`）已通過 host compile/tests；current evidence authority：`VALIDATION.md`。
 - CAN foundation edge-case regression coverage 已建立。
 - ESP32 Compile：PASS。Stage 4 已以 Arduino CLI 1.5.1、Arduino-ESP32 3.3.11、`esp32:esp32:esp32s3` 與獨立 TEMP build path 驗證 hardened `src/esp32_twai_can.cpp`，tested commit `4e77bf0`。詳見 `VALIDATION.md`。
 - Bench PASS：Pending。
 - Hardware PASS：Pending。
 - Vehicle PASS：Pending。
 
-這代表 Phase 1 software foundation 可交給下一階段 ISO-TP implementation；不代表實體 TWAI receive 或 vehicle validation 已完成。
+這代表 Phase 1 software foundation components 已建立，但 Phase 1 hardening 尚未關閉：Stage 4R 與 Stage 5 仍未完成；Phase 2 ISO-TP 目前沒有 completion gate。這不代表實體 TWAI receive 或 vehicle validation 已完成。
 
 Phase 2 v1 implementation 是 ISO-TP over Classic CAN；future non-CAN transports 僅為 architecture boundaries，不新增 K-Line implementation phase，也不改變 Kamiq → T-Roc → RAV4 → Wish validation sequence。

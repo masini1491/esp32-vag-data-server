@@ -194,11 +194,11 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 ## Stage 4R — TWAI lifecycle / alert observability correction
 
-**推薦模型：** Luna  
+**推薦模型：** Terra
 **推理強度：** Medium  
-**推薦理由：** 兩個 root cause 已由 current source 與 ESP-IDF TWAI contract 確認，修改應侷限在既有 ESP32 TWAI HAL lifecycle / alert bookkeeping，不需要重新做 architecture discovery。  
+**推薦理由：** 需要處理 TWAI runtime lifecycle、state ownership 與 destructive alert bookkeeping；Terra / Medium 足以完成 bounded correctness patch。
 **是否值得先用較便宜模型做前置蒐證：** 否；Luna 已是最低充分模型，且 evidence 已足夠。  
-**Context 建議：** Level 0→2；最新 AGENTS/TASKS、`src/esp32_twai_can.cpp`、`src/hal/esp32_twai_can.h`、直接 CanStatus contract 與必要 compile evidence。只有本地 contract 不足時才精準核對 Arduino-ESP32 3.3.11 / ESP-IDF legacy TWAI API。  
+**Context 建議：** Level 0→3；最新 AGENTS/TASKS、`src/esp32_twai_can.cpp`、`src/hal/esp32_twai_can.h`、直接 CanStatus contract、validation evidence 與必要的 Arduino-ESP32 3.3.11 / ESP-IDF legacy TWAI authority。
 **Execution mode：** Focused HAL correctness patch。  
 **Dependency / 觸發條件：** Stage 4 implementation `4e77bf0` 已存在，但 review 確認上述兩個 runtime contract defect；Stage 5 暫停，先完成本 Stage。  
 **Escalation條件：** 若修正必須引入 background task、FreeRTOS synchronization、跨模組 state machine、async TX framework 或改變 Phase 2 protocol scheduling，STOP；不要自行進 Stage 4B/Terra/Sol。
@@ -207,6 +207,9 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 
 ```text
 本次只執行 Stage 4R：TWAI lifecycle / alert observability correction。不要執行 Stage 5，也不要開始 ISO-TP / OBD / UDS / Scheduler。
+
+Root-cause gate：
+在任何 source mutation 前，必須以 bounded、version-specific authority confirmation 核對 Arduino-ESP32 3.3.11 對應的 TWAI contract：`twai_stop()` 可接受狀態、`twai_driver_uninstall()` 可接受狀態、`twai_read_alerts()` 的 destructive/clearing semantics。確認前分類為 `HIGH-CONFIDENCE LIKELY ROOT CAUSE — version-specific contract confirmation required before source mutation`；確認後才可升為 `CONFIRMED ROOT CAUSE`。若 authority 不一致或不足，STOP，不修改 source。
 
 已確認 evidence：
 1. Current `Esp32TwaiCan::stop()` 在 `started_ == true` 時，`twai_stop()` 失敗便立即 `DriverError` 返回。ESP-IDF legacy TWAI contract：`twai_stop()` 只接受 Running；`twai_driver_uninstall()` 可在 Stopped 或 Bus-Off 執行。因此 driver 已進 BUS_OFF 而 wrapper 仍保留 `started_ == true` 時，現有流程會錯過可成功的 direct uninstall，並阻斷 reinitialize。
@@ -217,6 +220,13 @@ Codex 必須以同步後的最新 `TASKS.md` 為準；短啟動指令不授權�
 - 修正 alert handling 的 destructive-read 問題。任何一次 `twai_read_alerts()` 取得的 required alerts 都不得因 caller 當下只關心另一類 bit 而永久遺失。以 HAL-local minimal latch/helper 或同等 bounded 設計保存並一次性 surface：至少 RX_QUEUE_FULL / RX_FIFO_OVERRUN → `RxOverflow`、BUS_OFF → `BusOff`、TX_FAILED → `TxFailed`。若目前啟用了沒有 contract consumer 的額外 alerts，應移除不必要 enable 或明確處理，不要留下會被無聲清除的高價值 alert。
 - `send() == Ok` 語意仍只代表 driver accepted/queued，不等於 on-wire completion。
 - 不新增 background task、callback framework、FreeRTOS scheduler、async completion system、ISO-TP-aware scheduling 或其他 Phase 2 architecture。
+
+Evidence / validation guard：
+- 既有 Stage 4 generic host / ESP32 compile evidence 在無 material source change 時維持有效；Stage 4R mutation 後，受影響 evidence 必須標記 `REVALIDATION_REQUIRED`。Host CI 只證明 host baseline，不證明 TWAI correctness；Bench / Hardware / Vehicle 仍為 Pending。
+- ESP32 compile 前先做 deterministic preflight：Arduino CLI、core version、FQBN、source/build path 與 backend participation；不引入大型 framework。
+- Build/CI failure 依第一個 fatal phase 歸類（preflight、compile/source、link、test、CI/infrastructure），不得自動稱為整體 Compile/SOURCE failure；未受影響 evidence 可重用。
+- 長時間操作採 bounded process/status/log inspection，不無限等待；若出現 runaway 或 corrupted generation，STOP 並保留 evidence。
+- PASS、queue removal 或 Stage 5 gate 前，核對 baseline/final/origin SHA、changed files/diff、validation 與 final TASKS state；不一致即 STOP（Completion Evidence Guard）。
 
 Validation：
 - 做最小 source/static review，證明 BUS_OFF cleanup path 不再被 `twai_stop()` invalid-state 阻斷。
@@ -232,7 +242,7 @@ Validation：
 - 只有 evidence 真的改變 current validation state 時才最小更新 VALIDATION / DEVELOPMENT；不要做 unrelated docs churn。
 - commit 並 push 本次授權變更。
 
-最終回報繁體中文：Baseline HEAD、Root Cause、lifecycle fix、alert preservation design、Changed files、Host validation、ESP32 compile evidence、Pending hardware evidence、TASKS cleanup、Final commit SHA、Push result。
+最終回報繁體中文：Baseline HEAD、Root Cause、lifecycle fix、alert preservation design、Changed files、Host validation、ESP32 compile evidence、Pending hardware evidence、TASKS cleanup、Final commit SHA、Push result。最後一行必須為 `回報時間：YYYY-MM-DD HH:mm (Asia/Taipei)`。
 ```
 
 ## Stage 5 — Phase 1 hardening 最終驗證、CI 與狀態同步
@@ -255,9 +265,10 @@ Validation：
 1. 跑完整 relevant host tests。
 2. 跑可重現 ESP32-S3 compile，確認真正包含 ESP32 TWAI backend。
 3. 檢查 GitHub Actions / compile gate 是否足以作為新的 Phase 1 evidence。
-4. 若 build layout 已固定且加入最小 ESP32 backend compile CI 明顯低風險、符合現有 workflow，可在本 Stage 實作；若會引入大型 toolchain/cache/CI complexity，保留 Deferred 並寫明原因。
-5. Review Phase 1 foundation docs/README/DEVELOPMENT status，只修正與實際 validation evidence 不一致的文字。Hardware/Bench/Vehicle 沒有實體 evidence 必須維持 Pending。
-6. 確認沒有 brand leakage、read-only violation、TWAI type 上滲或 speculative Phase 2 implementation。
+4. 先檢查 Stage 4R evidence，判定哪些 validation 受 material change 影響；重用仍有效的 current evidence，只重跑受影響、缺失或 current backend-required 的 evidence，不因 Stage 編號重跑完全相同 compile。
+5. 若 build layout 已固定且加入最小 ESP32 backend compile CI 明顯低風險、符合現有 workflow，可在本 Stage 實作；若會引入大型 toolchain/cache/CI complexity，保留 Deferred 並寫明原因。
+6. Review Phase 1 foundation docs/README/DEVELOPMENT status，只修正與實際 validation evidence 不一致的文字。Hardware/Bench/Vehicle 沒有實體 evidence 必須維持 Pending。
+7. 確認沒有 brand leakage、read-only violation、TWAI type 上滲或 speculative Phase 2 implementation。
 
 Build / CI evidence 至少回報：toolchain/version、board/FQBN、實際 command、tested commit SHA、GitHub Actions run/status（若適用）。
 
@@ -277,4 +288,5 @@ TASKS.md cleanup：
 - Bench / Hardware / Vehicle = Pending 或實際 evidence
 - Remaining TASKS
 - 是否可以進 Phase 2 ISO-TP
+- PASS / queue removal / Stage 5 gate 前套用 Completion Evidence Guard，最後一行為 `回報時間：YYYY-MM-DD HH:mm (Asia/Taipei)`。
 ```

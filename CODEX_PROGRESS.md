@@ -1,6 +1,6 @@
 # Project State Summary
 
-Reviewed: 2026-08-24
+Reviewed: 2026-08-27
 
 This file is the human-readable historical project-state summary. It is not the active work queue; current unfinished work is kept only in `TASKS.md`, and current validation authority is `VALIDATION.md`.
 
@@ -20,5 +20,5 @@ This file is the human-readable historical project-state summary. It is not the 
 
 ## Important revalidation state
 
-- Existing ESP32 compile evidence used Arduino-ESP32 3.3.11 with `esp32:esp32:esp32s3`, but the current queue records a build-layout gap: it does not yet prove that the TWAI backend participates in a standard Arduino build. This evidence is historical and requires revalidation.
-- See `VALIDATION.md` for the current evidence baseline and Pending / Revalidation Required states. Detailed changes remain in Git history.
+- ESP32 TWAI backend participation in the standard Arduino build is proven by the existing compile evidence; Stage 4R runtime correctness follow-up remains Pending. See `VALIDATION.md` for current evidence and Pending authority.
+- Phase 2 ISO-TP has not started. This summary is historical and not a second queue or validation ledger; detailed changes remain in Git history.
