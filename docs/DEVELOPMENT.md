@@ -51,13 +51,13 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 ## Phase 1 foundation status
 
 - Software PASS：Generic CAN model、Board Profile → HardwareConfig → HAL、Mock CAN、Fake Clock 與 ESP32-S3 TWAI backend 已完成。
-- Host Test PASS：Stage 4R 已以 `clang++ -std=c++17 -Wall -Wextra -pedantic -I. tests/host/main.cpp` local revalidation，tested commit `2e4ec1d`；current evidence authority：`VALIDATION.md`。
+- Host Test PASS：Stage 4T 已以 `clang++ -std=c++17 -Wall -Wextra -pedantic -I. tests/host/main.cpp` local revalidation，tested commit `0c699d6`；current evidence authority：`VALIDATION.md`。
 - CAN foundation edge-case regression coverage 已建立。
-- ESP32 Compile：PASS。Stage 4R 已以 Arduino CLI 1.5.1、Arduino-ESP32 3.3.11、ESP-IDF 5.5.5、`esp32:esp32:esp32s3` 與獨立 TEMP build path 驗證 `src/esp32_twai_can.cpp`，並確認 backend participation；tested commit `2e4ec1d`。詳見 `VALIDATION.md`。
+- ESP32 Compile：PASS。Stage 4T 已以 Arduino CLI 1.5.1、Arduino-ESP32 3.3.11、ESP-IDF 5.5.5、`esp32:esp32:esp32s3` 與獨立 TEMP build path 驗證 `src/esp32_twai_can.cpp`，並確認 backend participation；tested commit `0c699d6`。詳見 `VALIDATION.md`。
 - Bench PASS：Pending。
 - Hardware PASS：Pending。
 - Vehicle PASS：Pending。
 
-這代表 Phase 1 software foundation components、Stage 4R hardening 與 Stage 5 evidence consolidation 已完成；Phase 2 ISO-TP 尚未開始，可另行明確授權進入 implementation。這不代表實體 TWAI receive 或 vehicle validation 已完成。
+這代表 Phase 1 software foundation components、Stage 4R / Stage 4T hardening 與 Stage 5 evidence consolidation 已完成；Phase 2 ISO-TP 尚未開始，可另行明確授權進入 implementation。這不代表實體 TWAI receive 或 vehicle validation 已完成。
 
 Phase 2 v1 implementation 是 ISO-TP over Classic CAN；future non-CAN transports 僅為 architecture boundaries，不新增 K-Line implementation phase，也不改變 Kamiq → T-Roc → RAV4 → Wish validation sequence。

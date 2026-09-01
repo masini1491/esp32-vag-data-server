@@ -7,11 +7,6 @@
 `TASKS.md` 本身不授權 Codex 自動執行其他 Stage。完成工作以 Git history 為準；成功驗證後移除對應 unfinished item / Stage Prompt，不建立 Completed 區塊。
 
 ---
-## TODO
-
-- [ ] **Stage 4T — TWAI TX acceptance / backpressure contract correction** — bounded correction of generic `CanStatus` / `CanHal::send()` semantics and legacy `twai_transmit()` result mapping; validate host and ESP32-S3 backend compile, then remove this entry on successful completion.
-
----
 ## Deferred
 
 - [ ] **64-bit monotonic timestamp** — Deferred：目前 `frame.timestamp` 使用 Arduino `millis()`；等真正需要 frame freshness / long-running VehicleData semantics 時再處理。Phase 2 timeout 優先使用獨立 `Clock` abstraction。
