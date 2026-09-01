@@ -21,7 +21,7 @@
 ## TASKS.md shared queue
 
 - `TASKS.md` 是本 repository 唯一 active unfinished／executable queue；若存在，任務開始時讀取並只執行使用者當次授權的 Task／Stage。
-- 成功驗證後移除／更新對應 unfinished item；不建立 Completed 區塊或把 queue 當 changelog。沒有 unfinished work 時刪除 `TASKS.md`。
+- 成功驗證後移除／更新對應 unfinished item；不建立 Completed 區塊或把 queue 當 changelog。沒有 unfinished work 時保留 `TASKS.md`，只保留最小 `EMPTY` coordination state，不刪除檔案。
 - Queue lifecycle、Prompt discipline 與一般 execution semantics 依 common playbook routing；本 repository 的 project-specific queue scope 與 cleanup requirement 以本節為準。
 
 ## Remote-sync bootstrap
