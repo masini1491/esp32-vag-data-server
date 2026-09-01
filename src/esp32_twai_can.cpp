@@ -183,7 +183,20 @@ CanStatus Esp32TwaiCan::send(const CanFrame& frame) {
     message.data[index] = frame.payload[index];
   }
 
-  return twai_transmit(&message, 0) == ESP_OK ? CanStatus::Ok : CanStatus::TxFailed;
+  const esp_err_t result = twai_transmit(&message, 0);
+  if (result == ESP_OK) {
+    return CanStatus::Ok;
+  }
+  if (result == ESP_ERR_TIMEOUT || result == ESP_FAIL) {
+    return CanStatus::TxBusy;
+  }
+  if (result == ESP_ERR_INVALID_STATE) {
+    return CanStatus::NotInitialized;
+  }
+  if (result == ESP_ERR_INVALID_ARG || result == ESP_ERR_NOT_SUPPORTED) {
+    return CanStatus::InvalidConfig;
+  }
+  return CanStatus::DriverError;
 }
 
 CanStatus Esp32TwaiCan::receive(CanFrame& frame) {

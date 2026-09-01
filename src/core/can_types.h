@@ -17,6 +17,8 @@ enum class CanStatus : std::uint8_t {
   NotInitialized,
   InvalidConfig,
   NoData,
+  // The frame was not accepted because TX capacity is temporarily unavailable.
+  TxBusy,
   TxFailed,
   DriverError,
   RxOverflow,

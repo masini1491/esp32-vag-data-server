@@ -12,6 +12,7 @@ using namespace vag_data::test;
 
 void testCanFrameModel() {
   static_assert(CanFrame::kClassicCanMaxPayload == 8);
+  static_assert(CanStatus::TxBusy != CanStatus::TxFailed);
 
   const auto zeroId = makeFrame(0x000, {});
   const auto standardMax = makeFrame(0x7FF, {0xFF});
