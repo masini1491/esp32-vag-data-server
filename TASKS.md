@@ -7,6 +7,18 @@
 `TASKS.md` 本身不授權 Codex 自動執行其他 Stage。完成工作以 Git history 為準；成功驗證後移除對應 unfinished item / Stage Prompt，不建立 Completed 區塊。
 
 ---
+## TODO
+
+- [ ] **Governance synchronization — latest common Playbook reconciliation**
+  - Mode: governance/docs-only; production behavior MUST remain unchanged.
+  - Recommended execution: Luna / Medium, Context L0→L2, Agent 1, Focused patch + targeted documentation validation.
+  - Authority: current project `AGENTS.md` / technical contracts plus latest `masini1491/ai-development-playbook` `main`; use common-policy routing instead of copying common normative text.
+  - Confirmed drift to correct: project `AGENTS.md` still says an empty queue deletes `TASKS.md`, while the current common contract uses a persistent `TASKS.md` coordination surface with minimal `EMPTY` state; reconcile this and any directly related stale/duplicated common-governance wording discovered in the same bounded review.
+  - Preserve project-specific stricter rules, especially read-only diagnostic policy, Git fast-forward-only / forbidden-workaround deltas, physical evidence Pending rules, architecture/brand/transport boundaries, and the existing ChatGPT-only-root-`TASKS.md` write boundary.
+  - Allowed project mutation: governance/documentation only where materially required by this reconciliation; no source, protocol, security, persistence, GPIO, runtime behavior, UI, tooling, CI, or product-feature changes.
+  - Validation: targeted authority/routing/contradiction review + `git diff --check`; completion requires normal TASKS bookkeeping and canonical remote completion evidence.
+
+---
 ## Deferred
 
 - [ ] **64-bit monotonic timestamp** — Deferred：目前 `frame.timestamp` 使用 Arduino `millis()`；等真正需要 frame freshness / long-running VehicleData semantics 時再處理。Phase 2 timeout 優先使用獨立 `Clock` abstraction。
