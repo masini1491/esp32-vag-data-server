@@ -9,7 +9,7 @@
 
 - 本專案以 `masini1491/ai-development-playbook` 作為共通 development baseline；本檔與 repository 正式 technical contracts 保存 project-specific authority。
 - Authority hierarchy：user current instruction → latest project governance／technical source of truth → common playbook → `TASKS.md` → stale prompt／cached copy／memory。
-- 只依當次 Task route 到最低必要章節，不完整掃描 playbook：Git／repository／permission／external service → `REPOSITORY_EXECUTION.md`；debug／root cause／retry／validation → `DEBUG_VALIDATION.md`；architecture／research／external authority → `RESEARCH_ARCHITECTURE.md`；ESP32／embedded／hardware → `EMBEDDED_PROJECTS.md`；Codex model／reasoning／Context／Agent／prompt discipline → `CODEX_PROMPT_RULES.md`；Windows／PowerShell／local runtime → relevant 時才讀 `TOOLCHAIN.md`。
+- 只依當次 Task route 到最低必要章節，不完整掃描 playbook：Git／repository／permission／external service → `REPOSITORY_EXECUTION.md`；debug／root cause／retry／validation → `DEBUG_VALIDATION.md`；architecture／research／external authority → `RESEARCH_ARCHITECTURE.md`；ESP32／embedded／hardware → `EMBEDDED_PROJECTS.md`；ChatGPT project planning／TASKS admission／Prompt mode／delivery／copy-ready／Codex result reconciliation → `CHATGPT_WORKFLOW.md`；Codex model／Reasoning／Context／Agent／execution mode／cost／tool discipline／reporting → `CODEX_EXECUTION.md`；Windows／PowerShell／local runtime → relevant 時才讀 `TOOLCHAIN.md`。
 - External playbook reference 只代表 routing，不代表 execution environment 自動具有 network、filesystem 或 credential capability；需要時仍須通過正式 permission gates。
 
 ## Source of truth and Git safety
@@ -41,7 +41,7 @@
 
 ## Short-launch queue semantics
 
-- Short-launch、model／reasoning／Context／Agent discipline 依 `CODEX_PROMPT_RULES.md`；使用者手動選擇模型與推理強度，Codex 不得自行升級或執行未授權 Stage。
+- Prompt mode／TASKS Short-launch／copy-ready 等 ChatGPT prompt-generation semantics 依 `CHATGPT_WORKFLOW.md`；model／Reasoning／Context／Agent 與 Codex execution discipline 依 `CODEX_EXECUTION.md`。使用者手動選擇模型與推理強度，Codex 不得自行升級或執行未授權 Stage。
 
 ## Library-ready design
 
