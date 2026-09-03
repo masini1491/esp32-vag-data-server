@@ -9,7 +9,7 @@
 
 - 本專案以 `masini1491/ai-development-playbook` 作為共通 development baseline；本檔與 repository 正式 technical contracts 保存 project-specific authority。
 - Authority hierarchy：user current instruction → latest project governance／technical source of truth → common playbook → `TASKS.md` → stale prompt／cached copy／memory。
-- 只依當次 Task route 到最低必要章節，不完整掃描 playbook：Git／repository／permission／external service → `REPOSITORY_EXECUTION.md`；debug／root cause／retry／validation → `DEBUG_VALIDATION.md`；architecture／research／external authority → `RESEARCH_ARCHITECTURE.md`；ESP32／embedded／hardware → `EMBEDDED_PROJECTS.md`；ChatGPT project planning／TASKS admission／Prompt mode／delivery／copy-ready／Codex result reconciliation → `CHATGPT_WORKFLOW.md`；Codex model／Reasoning／Context／Agent／execution mode／cost／tool discipline／reporting → `CODEX_EXECUTION.md`；Windows／PowerShell／local runtime → relevant 時才讀 `TOOLCHAIN.md`。
+- 只依當次 Task route 到最低必要章節，不完整掃描 playbook：Git／repository／permission／external service → `REPOSITORY_EXECUTION.md`；debug／root cause／retry／validation → `DEBUG_VALIDATION.md`；architecture／research／external authority → `RESEARCH_ARCHITECTURE.md`；ESP32／embedded／hardware → `EMBEDDED_PROJECTS.md`；AI Context／Hot-Cold-Evidence responsibility／default-load／routing／retrieval-cost → `AI_CONTEXT.md`；ChatGPT project planning／TASKS admission／Prompt mode／delivery／copy-ready／Codex result reconciliation → `CHATGPT_WORKFLOW.md`；Codex model／Reasoning／Context／Agent／execution mode／cost／tool discipline／reporting → `CODEX_EXECUTION.md`；Windows／PowerShell／local runtime → relevant 時才讀 `TOOLCHAIN.md`。
 - External playbook reference 只代表 routing，不代表 execution environment 自動具有 network、filesystem 或 credential capability；需要時仍須通過正式 permission gates。
 
 ## Source of truth and Git safety
@@ -22,7 +22,14 @@
 
 - `TASKS.md` 是本 repository 唯一 active unfinished／executable queue；若存在，任務開始時讀取並只執行使用者當次授權的 Task／Stage。
 - 成功驗證後移除／更新對應 unfinished item；不建立 Completed 區塊或把 queue 當 changelog。沒有 unfinished work 時保留 `TASKS.md`，只保留最小 `EMPTY` coordination state，不刪除檔案。
+- `TASKS.md` 是 Hot/current executable 或 critical-path coordination；普通 bootstrap 讀取 current Hot surface。`BACKLOG.md` 是 Cold Registry，預設不載入 ordinary bootstrap、沒有 execution authority，也不可直接用於 TASKS Short-launch。
+- Cold item 的 trigger 成立或被使用者選中後，先重讀 current authority/evidence、reconcile premise，再 promote 到 `TASKS.md`，之後才可依正常 authorization launch；Cold work 不因持久化而取得 execution authority。
 - Queue lifecycle、Prompt discipline 與一般 execution semantics 依 common playbook routing；本 repository 的 project-specific queue scope 與 cleanup requirement 以本節為準。
+
+## ChatGPT Coordination Write Allowlist
+
+- ChatGPT direct-write coordination allowlist 僅有 `/TASKS.md` 與 `/BACKLOG.md`。未列入 path（包括 `AGENTS.md`、README/docs、source、tests、tooling、workflow 與 validation authority）對 ChatGPT 仍為 read-only。
+- 本 project 不啟用 Hot task dossier 或 evidence staging；新增 allowlisted Cold Registry 不改變其他 path 的寫入邊界。
 
 ## Remote-sync bootstrap
 
