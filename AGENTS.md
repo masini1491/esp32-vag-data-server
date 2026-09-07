@@ -5,12 +5,35 @@
 - Codex 工作回報使用繁體中文。
 - Source code symbol / API / protocol name 保持原文；文件以繁體中文為主，必要技術名稱使用英文。
 
+## AI Development Playbook adoption
+
+本專案採用 `masini1491/ai-development-playbook` 作為共通 development baseline。
+Playbook baseline: main
+
+新 ChatGPT／AI／coding-agent session 的最小 bootstrap 順序為：
+
+1. 先確認 target repository、branch 與 workspace identity。
+2. 讀取本 project `AGENTS.md`。
+3. Resolve 上述 Playbook baseline 的 current immutable revision。
+4. 讀取該 baseline 的 `CHAT_INIT.md`。
+5. 再依 current Task 只讀 minimum-sufficient canonical sections、current Hot coordination surface 與本次直接相關的正式 source of truth。
+
+Project-specific governance 與 technical source of truth 高於 common Playbook。採用 Playbook 本身不會新增或擴張 ChatGPT、Codex 或其他 agent 的 repository write、execution、deployment、credential、secret 或 external-service authority。
+
+- Canonical technical source(s): `docs/ARCHITECTURE.md`; `VALIDATION.md`; `src/`; `tests/`; this `AGENTS.md`
+- Current coordination surface: `TASKS.md`
+- Required validation: `git diff --check`; current `TASKS.md` / `VALIDATION.md` requirements; Bench／Hardware／Vehicle evidence remains Pending without physical evidence
+- Project-specific exceptions or restrictions: GitHub `main` source-of-truth with clean fast-forward-only sync; ChatGPT Coordination Write Allowlist `/TASKS.md` and `/BACKLOG.md`; read-only diagnostic policy; physical evidence cannot be inferred from software or compile evidence
+
+## Authority boundary
+
+Project-specific authority remains with this `AGENTS.md`, the declared technical sources, and the current Hot coordination surface `TASKS.md`; `BACKLOG.md` remains a Cold Registry without execution authority.
+
 ## Common playbook routing
 
-- 本專案以 `masini1491/ai-development-playbook` 作為共通 development baseline；本檔與 repository 正式 technical contracts 保存 project-specific authority。
-- Authority hierarchy：user current instruction → latest project governance／technical source of truth → common playbook → `TASKS.md` → stale prompt／cached copy／memory。
-- 只依當次 Task route 到最低必要章節，不完整掃描 playbook：Git／repository／permission／external service → `REPOSITORY_EXECUTION.md`；debug／root cause／retry／validation → `DEBUG_VALIDATION.md`；architecture／research／external authority → `RESEARCH_ARCHITECTURE.md`；ESP32／embedded／hardware → `EMBEDDED_PROJECTS.md`；AI Context／Hot-Cold-Evidence responsibility／default-load／routing／retrieval-cost → `AI_CONTEXT.md`；ChatGPT project planning／TASKS admission／Prompt mode／delivery／copy-ready／Codex result reconciliation → `CHATGPT_WORKFLOW.md`；Codex model／Reasoning／Context／Agent／execution mode／cost／tool discipline／reporting → `CODEX_EXECUTION.md`；Windows／PowerShell／local runtime → relevant 時才讀 `TOOLCHAIN.md`。
-- External playbook reference 只代表 routing，不代表 execution environment 自動具有 network、filesystem 或 credential capability；需要時仍須通過正式 permission gates。
+- 本檔保存 project-specific governance、正式例外與 technical authority；common Playbook 的 current task routing 由已宣告 baseline 的 `CHAT_INIT.md` 負責。
+- 新 session 先讀 `CHAT_INIT.md`，再依該檔指向的最低必要 canonical owner；不要完整掃描 Playbook，也不要在本檔維護會 drift 的 owner inventory。
+- External Playbook reference 只代表 routing，不代表 execution environment 自動具有 network、filesystem 或 credential capability；需要時仍須通過正式 permission gates。
 
 ## Source of truth and Git safety
 
