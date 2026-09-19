@@ -9,7 +9,7 @@
 ---
 ## HOT — Project AI mode + Evidence Staging migration
 
-Status: Ready
+Status: Reconciliation correction required
 
 Goal:
 - 持久化 `Project AI mode: ChatGPT+Codex`。
@@ -31,6 +31,9 @@ Required semantics:
 - Hot task dossier 仍不啟用。
 - Evidence staging 不具 execution authority、ordinary bootstrap 預設不載入，且只允許 repo-safe / sanitized evidence；raw sensitive material 不得先進 Git。
 - Evidence staging 不是 `VALIDATION.md` 或其他 canonical truth 的替代品；正式 validation 結論仍需 reconciliation 後由 canonical owner吸收。
+
+Reconciliation finding:
+- `AGENTS.md` 的 minimum-contract 欄位 `Project-specific exceptions or restrictions` 仍只列 ChatGPT Coordination Write Allowlist `/TASKS.md` 與 `/BACKLOG.md`，與後方已正式加入 `/evidence/inbox/*.md` 的 allowlist section 不一致。需由 Codex 將該欄位同步納入 sanitized `/evidence/inbox/*.md`；只修正此 governance inconsistency，不擴張其他 scope。
 
 Validation / completion:
 - 依 current Playbook 與 project governance 完成必要 deterministic validation。
