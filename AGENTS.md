@@ -24,7 +24,7 @@ Project-specific governance 與 technical source of truth 高於 common Playbook
 - Canonical technical source(s): `docs/ARCHITECTURE.md`; `VALIDATION.md`; `src/`; `tests/`; this `AGENTS.md`
 - Current coordination surface: `TASKS.md`
 - Required validation: `git diff --check`; current `TASKS.md` / `VALIDATION.md` requirements; Bench／Hardware／Vehicle evidence remains Pending without physical evidence
-- Project-specific exceptions or restrictions: GitHub `main` source-of-truth with clean fast-forward-only sync; ChatGPT Coordination Write Allowlist `/TASKS.md` and `/BACKLOG.md`; read-only diagnostic policy; physical evidence cannot be inferred from software or compile evidence
+- Project-specific exceptions or restrictions: GitHub `main` source-of-truth with clean fast-forward-only sync; ChatGPT Coordination Write Allowlist `/TASKS.md`, `/BACKLOG.md` and sanitized `/evidence/inbox/*.md`; read-only diagnostic policy; physical evidence cannot be inferred from software or compile evidence
 
 ## Authority boundary
 
