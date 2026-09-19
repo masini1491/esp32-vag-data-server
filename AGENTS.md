@@ -9,6 +9,7 @@
 
 本專案採用 `masini1491/ai-development-playbook` 作為共通 development baseline。
 Playbook baseline: main
+Project AI mode: ChatGPT+Codex
 
 新 ChatGPT／AI／coding-agent session 的最小 bootstrap 順序為：
 
@@ -51,8 +52,9 @@ Project-specific authority remains with this `AGENTS.md`, the declared technical
 
 ## ChatGPT Coordination Write Allowlist
 
-- ChatGPT direct-write coordination allowlist 僅有 `/TASKS.md` 與 `/BACKLOG.md`。未列入 path（包括 `AGENTS.md`、README/docs、source、tests、tooling、workflow 與 validation authority）對 ChatGPT 仍為 read-only。
-- 本 project 不啟用 Hot task dossier 或 evidence staging；新增 allowlisted Cold Registry 不改變其他 path 的寫入邊界。
+- ChatGPT direct-write coordination allowlist 包含 `/TASKS.md`、`/BACKLOG.md` 與 sanitized `/evidence/inbox/*.md`。未列入 path（包括 `AGENTS.md`、README/docs、source、tests、tooling、workflow 與 validation authority）對 ChatGPT 仍為 read-only。
+- Hot task dossier 仍不啟用。`/evidence/inbox/*.md` 是非 execution-authority 的 evidence staging surface，ordinary bootstrap 預設不載入；只保存 repo-safe、sanitized 的 observation／provenance／measurement condition。正式 validation 結論仍須 reconciliation 後由 canonical owner 吸收，staging 不取代 `VALIDATION.md` 或其他 canonical truth。
+- Evidence staging 不得先寫入 raw credential、token、MAC、私人 endpoint、個資或其他敏感材料再事後清理；敏感 raw artifact 應留在 repo 外，Git 只保存允許的 redacted metadata、digest、hash 或 pointer。
 
 ## Remote-sync bootstrap
 
