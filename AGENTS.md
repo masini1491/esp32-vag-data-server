@@ -35,7 +35,7 @@ Project-specific authority remains with this `AGENTS.md`, the declared technical
 ## TASKS.md shared queue
 
 - `TASKS.md` 是本 repository 唯一的 Hot/current executable-work coordination surface；`BACKLOG.md` 是 Cold Registry，不具 execution authority。
-- 本 repository 的 queue cleanup requirement 以本節為準；Hot／Cold lifecycle、admission 與 prompt semantics 依 shared `AI_CONTEXT.md`、`REPOSITORY_EXECUTION.md` 與 `CHATGPT_WORKFLOW.md`。
+- Hot／Cold lifecycle、admission、queue cleanup、completion 與 `EMPTY` semantics 依 shared `REPOSITORY_EXECUTION.md` → `Hot completion`；prompt semantics 依 shared `AI_CONTEXT.md`、`REPOSITORY_EXECUTION.md` 與 `CHATGPT_WORKFLOW.md`。
 
 ## ChatGPT Coordination Write Allowlist
 
