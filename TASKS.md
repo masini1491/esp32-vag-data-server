@@ -9,7 +9,7 @@
 ---
 ## HOT — Governance ownership normalization
 
-Status: Ready
+Status: Reconciliation correction required
 
 Goal:
 - 依 current `masini1491/ai-development-playbook` ownership architecture，對 `AGENTS.md` 做 subtractive normalization。
@@ -35,6 +35,9 @@ Required normalization:
 Writable scope:
 - Codex may modify only `AGENTS.md`.
 - Codex must not modify `TASKS.md`, `BACKLOG.md`, `evidence/**`, README/docs, `VALIDATION.md`, source, tests, tooling, workflow or roadmap.
+
+Reconciliation finding:
+- Final `AGENTS.md` 的 `TASKS.md shared queue` 仍寫「本 repository 的 queue cleanup requirement 以本節為準」，但本節已不再定義任何 local cleanup requirement；shared `REPOSITORY_EXECUTION.md → Hot completion` 已完整擁有通用 completion/EMPTY semantics。這形成 dangling local authority。Codex 應將該句收斂為 shared-owner pointer（例如將 cleanup 一併列入 shared lifecycle/completion semantics），不要重新複製 completion procedure，也不要改變 TASKS persistent-mode behavior。
 
 Validation / completion:
 - Final diff only `AGENTS.md`.
