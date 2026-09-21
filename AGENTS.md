@@ -13,11 +13,8 @@ Project AI mode: ChatGPT+Codex
 
 新 ChatGPT／AI／coding-agent session 的最小 bootstrap 順序為：
 
-1. 先確認 target repository、branch 與 workspace identity。
-2. 讀取本 project `AGENTS.md`。
-3. Resolve 上述 Playbook baseline 的 current immutable revision。
-4. 讀取該 baseline 的 `CHAT_INIT.md`。
-5. 再依 current Task 只讀 minimum-sufficient canonical sections、current Hot coordination surface 與本次直接相關的正式 source of truth。
+1. 先依本 project governance 與 current `TASKS.md` 確認 repository、work-state 與本地 authority。
+2. 只有 activation 需要時，才 resolve 宣告 baseline 的 immutable revision、讀取其 `CHAT_INIT.md`，並依 router 讀取最低充分 canonical owner。
 
 Project-specific governance 與 technical source of truth 高於 common Playbook。採用 Playbook 本身不會新增或擴張 ChatGPT、Codex 或其他 agent 的 repository write、execution、deployment、credential、secret 或 external-service authority。
 
@@ -30,50 +27,20 @@ Project-specific governance 與 technical source of truth 高於 common Playbook
 
 Project-specific authority remains with this `AGENTS.md`, the declared technical sources, and the current Hot coordination surface `TASKS.md`; `BACKLOG.md` remains a Cold Registry without execution authority.
 
-## Common playbook routing
-
-- 本檔保存 project-specific governance、正式例外與 technical authority；common Playbook 的 current task routing 由已宣告 baseline 的 `CHAT_INIT.md` 負責。
-- 新 session 先讀 `CHAT_INIT.md`，再依該檔指向的最低必要 canonical owner；不要完整掃描 Playbook，也不要在本檔維護會 drift 的 owner inventory。
-- External Playbook reference 只代表 routing，不代表 execution environment 自動具有 network、filesystem 或 credential capability；需要時仍須通過正式 permission gates。
-
 ## Source of truth and Git safety
 
-- GitHub `main` 是 source of truth；開始工作前依任務需要確認 `git status`、branch、HEAD。
-- Working tree 若有來源不明修改，停止，不自行清除。
-- 除非明確要求，不得 `reset --hard`、force push、discard unknown changes、rewrite history 或自行刪除 unknown files。
+- GitHub `main` 是 source of truth；本 repository 僅接受 clean、fast-forward-only 的 remote sync。
+- Generic repository identity、Git procedure、permission recovery 與 remote operation gates 依 shared `REPOSITORY_EXECUTION.md`。
 
 ## TASKS.md shared queue
 
-- `TASKS.md` 是本 repository 唯一 active unfinished／executable queue；若存在，任務開始時讀取並只執行使用者當次授權的 Task／Stage。
-- 成功驗證後移除／更新對應 unfinished item；不建立 Completed 區塊或把 queue 當 changelog。沒有 unfinished work 時保留 `TASKS.md`，只保留最小 `EMPTY` coordination state，不刪除檔案。
-- `TASKS.md` 是 Hot/current executable 或 critical-path coordination；普通 bootstrap 讀取 current Hot surface。`BACKLOG.md` 是 Cold Registry，預設不載入 ordinary bootstrap、沒有 execution authority，也不可直接用於 TASKS Short-launch。
-- Cold item 的 trigger 成立或被使用者選中後，先重讀 current authority/evidence、reconcile premise，再 promote 到 `TASKS.md`，之後才可依正常 authorization launch；Cold work 不因持久化而取得 execution authority。
-- Queue lifecycle、Prompt discipline 與一般 execution semantics 依 common playbook routing；本 repository 的 project-specific queue scope 與 cleanup requirement 以本節為準。
+- `TASKS.md` 是本 repository 唯一的 Hot/current executable-work coordination surface；`BACKLOG.md` 是 Cold Registry，不具 execution authority。
+- 本 repository 的 queue cleanup requirement 以本節為準；Hot／Cold lifecycle、admission 與 prompt semantics 依 shared `AI_CONTEXT.md`、`REPOSITORY_EXECUTION.md` 與 `CHATGPT_WORKFLOW.md`。
 
 ## ChatGPT Coordination Write Allowlist
 
 - ChatGPT direct-write coordination allowlist 包含 `/TASKS.md`、`/BACKLOG.md` 與 sanitized `/evidence/inbox/*.md`。未列入 path（包括 `AGENTS.md`、README/docs、source、tests、tooling、workflow 與 validation authority）對 ChatGPT 仍為 read-only。
-- Hot task dossier 仍不啟用。`/evidence/inbox/*.md` 是非 execution-authority 的 evidence staging surface，ordinary bootstrap 預設不載入；只保存 repo-safe、sanitized 的 observation／provenance／measurement condition。正式 validation 結論仍須 reconciliation 後由 canonical owner 吸收，staging 不取代 `VALIDATION.md` 或其他 canonical truth。
-- Evidence staging 不得先寫入 raw credential、token、MAC、私人 endpoint、個資或其他敏感材料再事後清理；敏感 raw artifact 應留在 repo 外，Git 只保存允許的 redacted metadata、digest、hash 或 pointer。
-
-## Remote-sync bootstrap
-
-- 執行 `TASKS.md` 中的工作前，先確認 repository identity、`git status --short`、branch、HEAD，並執行 `git fetch origin`。
-- 只有在預期 branch、working tree clean、沒有 merge／rebase／cherry-pick 進行中，且 local 可由 `origin/main` fast-forward-only 時，才同步到最新 remote。
-- 若 dirty、unexpected branch、local ahead／diverged、無法 fast-forward 或存在未完成 Git operation，立即 STOP 並回報；不得自行修復。
-- 禁止 `reset --hard`、force push、自行 merge／rebase、stash、delete 或 discard unknown work。
-- 同步完成後才讀最新 local `AGENTS.md` 與 `TASKS.md`；若 `TASKS.md` 或指定 Stage 已不存在，不得依舊 prompt、舊 SHA 或記憶繼續執行。
-
-## Permission-Gated Operation
-
-- Permission-gated execution、capability layers、external network／service、credential boundary 與一般 failure handling 依 common playbook routing；本 repository 仍採更嚴格的 Git safety／fast-forward-only 規則。
-- `git fetch origin` 遇到 `.git/FETCH_HEAD: Permission denied`、Git lock/ref file 無法建立或 sandbox 阻擋 repository metadata 寫入時，先依 playbook permission gate 處理，不先判定 environment failure。
-- 禁止以 permission workaround 繞過安全規則：`sudo`、`chmod -R 777`、`reset --hard`、force push、自行刪除 `.git/FETCH_HEAD`、未確認原因就刪除 `.git/index.lock` 或其他 lock、重新 clone 覆蓋 working tree、stash/delete/discard unknown user work、自行 merge/rebase/cherry-pick，或以另一 repository 繞過目前問題。
-- External network、external API／CLI／HTTPS、remote service、package／dependency retrieval 與 credential capability 等 execution boundary，遵守最新版 `masini1491/ai-development-playbook` 的 `REPOSITORY_EXECUTION.md`（Authorization／Capability Layers、Permission-Gated Operation、External network／service boundary、Remote Git Permission Gate）。本 repository 更嚴格的 Git safety、fast-forward-only 與 forbidden workaround 規則繼續適用；任何 permission／network approval 或 credential capability 都不會擴張 Task／Stage authorization。
-
-## Short-launch queue semantics
-
-- Prompt mode／TASKS Short-launch／copy-ready 等 ChatGPT prompt-generation semantics 依 `CHATGPT_WORKFLOW.md`；model／Reasoning／Context／Agent 與 Codex execution discipline 依 `CODEX_EXECUTION.md`。使用者手動選擇模型與推理強度，Codex 不得自行升級或執行未授權 Stage。
+- Hot task dossier 仍不啟用。`/evidence/inbox/*.md` 僅可保存 repo-safe、sanitized evidence，且不具 execution authority；詳細 evidence-staging lifecycle、reconciliation 與 sanitization method 依 shared `AI_CONTEXT.md` 與 `REPOSITORY_EXECUTION.md`。
 
 ## Library-ready design
 
@@ -83,10 +50,6 @@ Project-specific authority remains with this `AGENTS.md`, the declared technical
 - UI、network、storage clients 依賴 VehicleData／application-facing interface；核心協議不得反向依賴 client。避免不必要 global mutable state 與 platform singleton，以維持 host testing／dependency injection 能力。
 - 等 ISO-TP → OBD／UDS → Brand Layer → Vehicle Profile → VehicleData 的實際資料流穩定後，再評估 library extraction；目前不要建立 `library.properties`、package、另一個 repository、semantic versioning 或未使用的抽象層。
 
-## Windows / PowerShell routing
-
-- Windows／PowerShell local runtime contract 僅在 repository-owned tooling 存在或當次 Task 相關時，route 至 common playbook `TOOLCHAIN.md`；目前本 repository 沒有 tracked `.ps1`，不在此重複維護通用 runtime policy。
-
 ## Repository file roles and update thresholds
 
 - `AGENTS.md` 是永久工作規則。
@@ -95,19 +58,10 @@ Project-specific authority remains with this `AGENTS.md`, the declared technical
 - `VALIDATION.md` 是 validation contract、evidence 與 current Pending authority，不是 task queue。
 - `docs/DEVELOPMENT.md` 是 roadmap／phase definitions，不作詳細 validation evidence ledger。
 - `CHANGELOG.md` 是 release／change summary，不作 active queue 或 validation authority。
-- Git history 是實際完成修改的最終權威。
-- 只有 material project-state、重要 validation 或 Pending 狀態實質變更時，才更新 `CODEX_PROGRESS.md`／`VALIDATION.md`；純 queue bookkeeping、wording、排序、格式或小 maintenance 不應把歷程文件寫胖。
-- 目前不要建立 `CODEX_TASKS.md`。未來只有真的累積值得永久保留的 archived Prompt/specification series 時，才另行評估；若建立，只能是 historical specification/index，不得成為第二個 active queue。
-
-## Repository reading and evidence
-
-- Progressive reading、debug/root-cause、retry taxonomy 與 validation ladder 依 common playbook routing（分別 route 至 `REPOSITORY_EXECUTION.md`／`DEBUG_VALIDATION.md` 等最低必要章節）；不因本 repository 而完整複製 playbook。
-- Operational failure taxonomy 固定為 `SOURCE`、`TOOLCHAIN`、`ENVIRONMENT`、`INFRASTRUCTURE`、`SERVICE`、`AUTHENTICATION`、`AUTHORIZATION`、`HARDWARE_REQUIRED`；permission gate resolution 不計 operational retry，gate 尚未解除前不分類為上述 failure。`AUTHENTICATION`／`AUTHORIZATION` 不得以擴大 sandbox／network permission、blind retry、提高 credential privilege 或 production source patch 猜測修復；既有 non-compile retry cap 與 compile/source-fix override semantics 維持不變。
-- 本 repository-specific evidence rule：沒有實體 evidence 的 Bench、Hardware、Vehicle 層級一律標記 Pending，不得由 software／compile evidence 推導。
 
 ## Validation and hardware evidence
 
-Validation ladder、evidence recording 與 failure handling route 至 common playbook `DEBUG_VALIDATION.md`。本 repository-specific rule：沒有實體 evidence 的 Bench、Hardware、Vehicle 層級一律標記 Pending，不得由 software／compile evidence 推導。
+Validation ladder、evidence lifecycle 與 completion method 依 shared `DEBUG_VALIDATION.md`。本 repository-specific rule：沒有實體 evidence 的 Bench、Hardware、Vehicle 層級一律標記 Pending，不得由 software／compile evidence 推導。
 
 ## Hardware abstraction
 
