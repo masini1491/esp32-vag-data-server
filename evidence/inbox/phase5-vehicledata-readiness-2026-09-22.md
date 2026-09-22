@@ -193,3 +193,148 @@ Scheduler remains a separate later Stage. Phase 5B does not freeze:
 - concurrency/thread/task ownership.
 
 Those decisions require the now-concrete Phase 5A sample and Phase 5B store semantics plus a representative producer/consumer flow.
+
+
+## Phase 5C Scheduler readiness finalization
+
+Phase 5A and Phase 5B now provide concrete normalized sample and bounded Store semantics. Phase 5C can therefore freeze a minimal scheduler lifecycle without inventing profile schema, Store mutation callbacks or diagnostic protocol knowledge.
+
+Because scheduler is a mature application/runtime capability, a bounded public pattern check was performed before architecture freeze.
+
+Public pattern sources:
+- FreeRTOS `vTaskDelayUntil()` reference / periodic-task guidance: https://www.freertos.org/media/2018/FreeRTOS_Reference_Manual_V10.0.0.pdf
+- FreeRTOS current `vTaskDelay()` documentation explaining why fixed-frequency periodic work should use absolute rather than call-relative timing: https://freertos.org/a00127.html
+- Zephyr Workqueue / Delayable Work documentation: https://docs.zephyrproject.org/latest/kernel/services/threads/workqueue.html
+
+Relevant transferable observations:
+- fixed-frequency periodic scheduling should advance from an absolute schedule/deadline rather than “completion time + interval” if drift is to be avoided;
+- scheduled/pending/running work lifecycle is distinct from the code that actually executes the work;
+- repeated scheduling of the same logical work does not require unbounded duplicate queue entries.
+
+These are architecture patterns only. No FreeRTOS or Zephyr source/API is copied into Generic Core.
+
+### Phase 5C owner
+
+Owner sentence:
+> Phase 5C owns bounded cooperative job timing/due/active lifecycle over opaque job IDs using injected monotonic `Clock`; it does not own job execution, diagnostic protocol/service semantics, VehicleData Store mutation, profile/capability mapping, threading, persistence or source priority.
+
+### Why Phase 5C can proceed before Phase 6
+
+The scheduler can remain independent of future profile semantics if its contract is limited to opaque job identity + generic schedule policy and exposes due jobs to an external executor.
+
+This avoids freezing:
+- OBD/UDS callback signatures;
+- Brand/Profile signal mappings;
+- capability registry schema;
+- Store update callbacks;
+- task/thread/FreeRTOS ownership.
+
+Phase 6 can later instantiate scheduler jobs from an Active Profile without modifying the scheduler’s generic timing lifecycle.
+
+### Phase 5C minimum first slice
+
+Use a fixed / compile-time bounded cooperative scheduler.
+
+Generic policies admitted in this first slice:
+- `Startup`
+- `Periodic`
+- `OnDemand`
+
+Do **not** implement `RealtimeTriggered` yet. A real realtime producer/event identity and loss/coalescing contract does not exist until later passive-CAN/runtime work. Inventing its queue/coalescing semantics now would be speculative.
+
+Likewise, `Unsupported` remains a capability/profile state, not a runnable scheduler policy. Unsupported work is simply not registered as a runnable job. The scheduler may return deterministic not-found/not-schedulable results for unknown IDs, but it must not become the capability registry owner.
+
+### Job identity / registration
+
+- Job ID is opaque caller-owned identity; exact underlying type/API spelling is implementation detail.
+- No canonical/global job registry or semantic job names are created by Phase 5C.
+- Fixed bounded capacity; duplicate job ID registration is rejected.
+- Capacity full rejects a new job without mutating existing jobs.
+- No dynamic registration schema, persistence, config parser or profile schema.
+- No unregister/update-period API is required in the first slice.
+
+### Cooperative dispatch lifecycle
+
+Scheduler is externally driven:
+- it owns no thread/task and performs no sleep/busy-wait;
+- it reads injected `Clock::nowMs()`;
+- caller asks for/takes the next due job;
+- taking a due job marks exactly one job active;
+- while one job is active, no second job is dispatched;
+- caller later reports completion of that same job;
+- completion transitions scheduler state and computes any next periodic deadline.
+
+This global single-flight rule is intentionally conservative for the first diagnostic-oriented runtime. It prevents overlapping access before resource-group/service arbitration exists. Later evidence may justify multi-resource concurrency as a separate architecture change.
+
+Scheduler does not execute callbacks and does not directly touch `VehicleDataStore`.
+
+### Startup policy
+
+- Startup job becomes due once after registration/scheduler initialization.
+- Once taken and completed, it never becomes due again in this slice.
+- No automatic retry policy is created.
+
+### Periodic policy
+
+- Period must be > 0.
+- Initial due time is registration-time `Clock::nowMs() + period`; immediate startup behavior should use a separate Startup job rather than overloading Periodic semantics.
+- Periodic cadence is anchored to scheduled deadlines, not actual completion time.
+- On completion, advance from the previous scheduled deadline by whole period increments until the next deadline is strictly in the future relative to current `Clock::nowMs()`.
+- Therefore late execution skips missed periods rather than creating catch-up bursts and does not accumulate completion-time drift.
+- No jitter, priority, rate adaptation, backoff or source-specific cadence logic is owned here.
+
+### On-demand policy
+
+- OnDemand job is dormant until explicitly requested.
+- A request makes it due.
+- Repeated request while already pending or active must not create duplicate queued instances; return a deterministic already-pending/busy-equivalent result.
+- Completion returns it to dormant state.
+- No automatic retry/requeue on failure is created; execution result semantics belong to the external owner.
+
+### Due selection
+
+- If multiple jobs are simultaneously due, choose deterministic registration/insertion order.
+- No priority model is introduced.
+- Existing active job always blocks further dispatch.
+
+### Time semantics
+
+- Use injected 64-bit monotonic `Clock`.
+- Scheduler owns schedule deadlines only; it does not rewrite VehicleData timestamps.
+- Tests must cover values above `UINT32_MAX`.
+- No wall clock / timezone / RTC semantics.
+
+### Phase 5C deterministic test intent
+
+Minimum host scenarios:
+- bounded registration, duplicate-ID rejection and full-capacity rejection without mutation;
+- Startup job dispatches exactly once;
+- Periodic job is not due before first absolute deadline and is due exactly at deadline;
+- periodic completion before next interval preserves absolute cadence;
+- late periodic completion skips all missed periods and schedules the first future deadline without catch-up burst;
+- repeated cycles do not accumulate “completion time + interval” drift;
+- time above `UINT32_MAX` is preserved;
+- OnDemand is dormant before request, due after request, dormant after completion;
+- duplicate OnDemand request while pending or active does not enqueue duplicate execution;
+- unknown-ID request is deterministic not-found;
+- simultaneous due jobs dispatch in stable registration order;
+- once one job is taken active, no second job dispatches until matching completion;
+- wrong-job completion is rejected without corrupting scheduler state;
+- scheduler has no callback execution, VehicleDataStore mutation, CAN/TWAI/VAG dependency, profile/capability registry, FreeRTOS/Arduino dependency, thread/mutex/task ownership or global mutable singleton;
+- existing VehicleData/Store and diagnostic host regressions remain PASS.
+
+### Phase 5C STOP / deferred areas
+
+Do not add in this slice:
+- RealtimeTriggered event semantics;
+- job priorities or source priority;
+- multi-resource/multi-flight concurrency;
+- execution callback/executor abstraction;
+- automatic retry/backoff;
+- scheduler-driven VehicleData stale/TTL aging;
+- profile/capability registry or polling policy schema;
+- persistence/config serialization;
+- OBD/UDS/VAG-specific job definitions;
+- FreeRTOS task/timer/workqueue bindings.
+
+If implementation cannot preserve a callback-free opaque-job boundary without needing concrete producer/profile semantics, STOP and defer Phase 5C until Phase 6 rather than inventing those semantics.
