@@ -99,3 +99,48 @@ After Phase 4A completion, a separate readiness/admission may implement:
 - No application/Web/BLE diagnostic TX.
 - No change to ISO-TP or OBD service semantics.
 - Bench / Hardware / Vehicle remain Pending.
+
+
+## Phase 4B readiness finalization
+
+Phase 4A completed at `4b8609302dc6569af53d7718d4ea75c152c682cb`, providing the semantic `0x22` guard path.
+
+Public protocol verification reconfirmed:
+- `ReadDataByIdentifier` request SID `0x22`;
+- positive response SID `0x62`;
+- generic negative response shape `7F <request SID> <NRC>`;
+- NRC `0x78` is response-pending and keeps the request logically active rather than completing it as failure.
+
+### Phase 4B exact service contract
+
+Implement a Generic UDS `ReadDataByIdentifier` service with:
+- dependency only on `ReadOnlyGuard` + injected `Clock`;
+- exactly one outstanding DID read at a time;
+- outbound request only through `ReadOnlyGuard::startUdsReadDataByIdentifier`;
+- positive response must match `62 DID_hi DID_lo <data...>`;
+- wrong SID or DID is `UnexpectedResponse` and must not complete the active request;
+- matching positive response with no data bytes is `InvalidResponse`;
+- matching negative response `7F 22 NRC`:
+  - NRC `0x78`: keep request active and refresh a bounded response-pending deadline;
+  - any other NRC: terminal negative response, exposing the NRC;
+- malformed negative response is `InvalidResponse`;
+- negative response for another request SID is `UnexpectedResponse`;
+- use injected `Clock` for initial response timeout and bounded response-pending timeout;
+- lower guard/transport start/poll/receive failures propagate deterministically;
+- return raw DID bytes only; no VAG scaling/meaning.
+
+Recommended timeout model:
+- initial response timeout begins only after lower transmission reaches response-wait state;
+- each valid NRC `0x78` refreshes the pending deadline;
+- configure a maximum pending-count (or equivalent bounded pending budget) so repeated `0x78` cannot extend forever;
+- exhausting pending-count or deadline produces timeout/pending-limit failure deterministically.
+
+### Phase 4B non-goals
+
+- no `0x10`, `0x19`, `0x3E`;
+- no DID registry;
+- no VAG routing/scaling;
+- no CAN/ECU addressing ownership;
+- no scheduler/VehicleData;
+- no application-facing diagnostic TX;
+- no ISO-TP change.
