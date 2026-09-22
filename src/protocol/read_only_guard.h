@@ -46,6 +46,16 @@ class ReadOnlyGuard {
             transport_.startSend(payload, sizeof(payload))};
   }
 
+  ReadOnlyResult startUdsReadDataByIdentifier(std::uint16_t did) {
+    const std::uint8_t payload[] = {
+        kUdsReadDataByIdentifier,
+        static_cast<std::uint8_t>((did >> 8) & 0xFFU),
+        static_cast<std::uint8_t>(did & 0xFFU),
+    };
+    return {ReadOnlyStatus::Forwarded,
+            transport_.startSend(payload, sizeof(payload))};
+  }
+
   TransportStatus poll() { return transport_.poll(); }
 
   TransportStatus receive(std::uint8_t* payload, std::size_t capacity,
@@ -56,6 +66,7 @@ class ReadOnlyGuard {
  private:
   static constexpr std::uint8_t kModeCurrentData = 0x01;
   static constexpr std::uint8_t kModeVehicleInformation = 0x09;
+  static constexpr std::uint8_t kUdsReadDataByIdentifier = 0x22;
 
   DiagnosticTransport& transport_;
 };

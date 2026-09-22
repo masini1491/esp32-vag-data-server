@@ -53,7 +53,7 @@ class RecordingDiagnosticTransport final : public DiagnosticTransport {
   TransportStatus sendStatus = TransportStatus::Complete;
   TransportStatus pollStatus = TransportStatus::Idle;
   TransportStatus receiveStatus = TransportStatus::NoData;
-  std::array<std::uint8_t, 2> lastPayload{};
+  std::array<std::uint8_t, 3> lastPayload{};
   std::array<std::uint8_t, 64> response{};
   std::size_t lastLength = 0;
   std::size_t sendCount = 0;
@@ -129,6 +129,42 @@ inline void testReadOnlyGuardPreservesTransportStatus() {
   }
 }
 
+inline void testReadOnlyGuardUdsSingleDid() {
+  RecordingDiagnosticTransport transport;
+  ReadOnlyGuard guard(transport);
+
+  const auto first = guard.startUdsReadDataByIdentifier(0xF190);
+  EXPECT_TRUE(first.status == ReadOnlyStatus::Forwarded);
+  EXPECT_TRUE(first.transportStatus == TransportStatus::Complete);
+  EXPECT_TRUE(transport.sendCount == 1);
+  EXPECT_TRUE(transport.lastLength == 3);
+  EXPECT_TRUE(transport.lastPayload[0] == 0x22);
+  EXPECT_TRUE(transport.lastPayload[1] == 0xF1);
+  EXPECT_TRUE(transport.lastPayload[2] == 0x90);
+
+  const auto second = guard.startUdsReadDataByIdentifier(0x1234);
+  EXPECT_TRUE(second.status == ReadOnlyStatus::Forwarded);
+  EXPECT_TRUE(transport.sendCount == 2);
+  EXPECT_TRUE(transport.lastLength == 3);
+  EXPECT_TRUE(transport.lastPayload[0] == 0x22);
+  EXPECT_TRUE(transport.lastPayload[1] == 0x12);
+  EXPECT_TRUE(transport.lastPayload[2] == 0x34);
+
+  constexpr std::array<TransportStatus, 5> failures{{
+      TransportStatus::Busy,
+      TransportStatus::TxBusy,
+      TransportStatus::TxFailed,
+      TransportStatus::BusOff,
+      TransportStatus::NotInitialized,
+  }};
+  for (const auto failure : failures) {
+    transport.sendStatus = failure;
+    const auto result = guard.startUdsReadDataByIdentifier(0xF190);
+    EXPECT_TRUE(result.status == ReadOnlyStatus::Forwarded);
+    EXPECT_TRUE(result.transportStatus == failure);
+  }
+}
+
 inline void testReadOnlyGuardDelegatesPollAndReceive() {
   RecordingDiagnosticTransport transport;
   transport.pollStatus = TransportStatus::Busy;
@@ -148,6 +184,7 @@ inline void runReadOnlyGuardTests() {
   testReadOnlyGuardAllowedRequests();
   testReadOnlyGuardDeniesAndRejectsMalformedRequests();
   testReadOnlyGuardPreservesTransportStatus();
+  testReadOnlyGuardUdsSingleDid();
   testReadOnlyGuardDelegatesPollAndReceive();
 }
 
