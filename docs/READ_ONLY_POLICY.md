@@ -11,3 +11,4 @@
 - 任何 diagnostic TX path 必須在送出前經 guard，並以 allowlist 驗證 service 與 operation。
 - Phase 3A 已建立最小 `ReadOnlyGuard` outbound enforcement：只接受 semantic 的 OBD Mode `0x01` 或 `0x09` single-PID request，並由 guard 內部建立兩位元組 payload。所有其他 mode、multi-PID 或 malformed request 都 fail-closed，且不呼叫下層 transport TX。
 - 此 safety gate 不代表 OBD-II response parser、UDS、DTC service semantics、VAG routing 或 application-facing diagnostic TX 已實作。
+- Phase 3B Generic OBD-II host service 只可經 `ReadOnlyGuard` 發出 Mode `0x01` single-PID request、supported-PID block request，或固定的 Mode `0x09` PID `0x02` VIN request。它不提供 arbitrary raw payload、DTC mode、UDS 或 application-facing diagnostic TX。

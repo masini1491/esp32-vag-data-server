@@ -7,7 +7,7 @@
 - Phase 1A-3: ESP32-S3 Classic CAN / TWAI backend（本輪；不含 protocol behavior）
 - Phase 1A-4: Foundation consolidation / Phase 1 implementation gate（本輪）
 - Phase 2A: Host-testable Classic CAN ISO-TP / DiagnosticTransport boundary（PASS；後續 service/application layers 尚未開始）
-- Phase 3: Generic OBD-II read-only（Phase 3A `ReadOnlyGuard` safety gate PASS；OBD-II service semantics 尚未開始）
+- Phase 3: Generic OBD-II read-only（Phase 3A `ReadOnlyGuard` safety gate 與 Phase 3B host service core PASS；DTC / broader service semantics 尚未開始）
 - Phase 4: Generic UDS read-only
 - Phase 5: VehicleData + Scheduler
 - Phase 6: VAG Brand Layer + Kamiq Profile
@@ -58,6 +58,6 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 - Hardware PASS：Pending。
 - Vehicle PASS：Pending。
 
-這代表 Phase 1 software foundation components、Stage 4R / Stage 4T hardening、Stage 5 evidence consolidation、Phase 2A host-testable ISO-TP / DiagnosticTransport core，以及 Phase 3A `ReadOnlyGuard` safety gate 已完成。Phase 3A 僅建立 Mode `0x01` / `0x09` semantic single-PID outbound enforcement；OBD-II service semantics、UDS、VAG routing、VehicleData 與 application-facing diagnostic TX 尚未開始。Phase 2A / 3A 均未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；這不代表實體 TWAI receive 或 vehicle validation 已完成。
+這代表 Phase 1 software foundation components、Stage 4R / Stage 4T hardening、Stage 5 evidence consolidation、Phase 2A host-testable ISO-TP / DiagnosticTransport core、Phase 3A `ReadOnlyGuard` safety gate，以及 Phase 3B Generic OBD-II host service core 已完成。Phase 3B 僅涵蓋 one-request-at-a-time 的 Mode `0x01` raw data / supported-PID block 與固定 VIN response validation；DTC、UDS、VAG routing、VehicleData 與 application-facing diagnostic TX 尚未開始。Phase 2A / 3A / 3B 均未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；這不代表實體 TWAI receive 或 vehicle validation 已完成。
 
 Phase 2 v1 implementation 是 ISO-TP over Classic CAN；future non-CAN transports 僅為 architecture boundaries，不新增 K-Line implementation phase，也不改變 Kamiq → T-Roc → RAV4 → Wish validation sequence。
