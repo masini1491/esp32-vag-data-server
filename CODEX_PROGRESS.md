@@ -11,7 +11,8 @@ This file is the human-readable historical project-state summary. It is not the 
 - Phase 2A host-testable Classic CAN ISO-TP / `DiagnosticTransport` core is implemented at `43a550de1e835fffad22e63f29e03943b6dea6c5`; local host compile/tests and GitHub Actions host-tests run `35688710299` passed.
 - Phase 3A `ReadOnlyGuard` safety gate is implemented at `5eefb442bc00e58005cc933fa6d56ab8bbe45ef6`; deterministic host tests verify only semantic Mode `0x01` / `0x09` single-PID forwarding, fail-closed denial and lower transport status preservation.
 - Phase 3B Generic OBD-II read-only host service core is implemented at `5e038fc114b5ea5b1bab6c1b517023f1e43e35c9`; it provides one-request-at-a-time raw Mode `0x01` data, supported-PID block and fixed VIN semantics exclusively through `ReadOnlyGuard`.
-- DTC modes, UDS, VAG routing, VehicleData and application-facing diagnostic TX remain unstarted.
+- Phase 4A `ReadOnlyGuard` UDS safety extension is implemented at `4b8609302dc6569af53d7718d4ea75c152c682cb`; it permits only semantic single-DID `ReadDataByIdentifier (0x22)` outbound construction and lower status propagation.
+- Generic UDS service semantics, DTC/NRC/session behavior, VAG routing, VehicleData and application-facing diagnostic TX remain unstarted.
 - The project remains VAG-first, with Škoda Kamiq as the primary vehicle validation target. Portability order remains Kamiq → T-Roc → RAV4 → Wish.
 
 ## Long-term decisions
@@ -27,3 +28,4 @@ This file is the human-readable historical project-state summary. It is not the 
 - Phase 2A host-core evidence is current at `43a550de`; ESP32 compile was not re-run because ESP32-facing source participation / platform boundary did not change. This summary is historical and not a second queue or validation ledger; detailed changes remain in Git history.
 - Phase 3A host tests passed at `5eefb44`; no ESP32 compile was re-run because the Generic Core guard did not change ESP32-facing source participation or the platform boundary. CI evidence remains scoped to the recorded Phase 2A run until a Phase 3A workflow result is separately recorded.
 - Phase 3B host tests passed at `5e038fc`; no ESP32 compile was re-run because the Generic Core OBD service did not change ESP32-facing source participation or the platform boundary. CI evidence remains scoped to the recorded Phase 2A run until a Phase 3B workflow result is separately recorded.
+- Phase 4A host tests passed at `4b86093`; no ESP32 compile was re-run because the guard-only UDS extension did not change ESP32-facing source participation or the platform boundary. This does not establish UDS response/runtime or physical evidence.
