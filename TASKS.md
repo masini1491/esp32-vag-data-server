@@ -9,7 +9,7 @@
 ---
 ## HOT — Phase 2A ISO-TP host core
 
-Status: Ready
+Status: Reconciliation correction required
 
 Goal:
 - 建立 host-testable、Classic CAN v1 的 ISO-TP core / DiagnosticTransport boundary。
@@ -50,6 +50,15 @@ Deterministic host-test matrix minimum:
 Actor ownership:
 - Codex：`src/**`、`tests/**` 與本 Stage 必要的 canonical docs/validation mutation。
 - ChatGPT：Stage scope/research、後續 code/diff review、evidence reconciliation、必要的 TASKS/BACKLOG/evidence 維護與 completion cleanup。
+
+Reconciliation finding:
+- Implementation / host tests / CI at `43a550de1e835fffad22e63f29e03943b6dea6c5` satisfy the Phase 2A software contract, but current canonical project-state owners are stale:
+  - `VALIDATION.md` still records Phase 1 / Stage 4T host+CI evidence and does not record current Phase 2A host/CI evidence.
+  - `CODEX_PROGRESS.md` still says Phase 2 ISO-TP implementation has not started.
+  - `docs/DEVELOPMENT.md` still says Phase 2 ISO-TP has not started.
+  - `README.md` still lists ISO-TP as not started / next stage.
+- This is residual completion closure inside the same admitted Stage, not a new feature Stage. Codex may update only those four canonical state/documentation owners as needed to reflect the already-completed Phase 2A boundary and evidence; do not change source/tests or expand Phase 2 scope.
+- Preserve Bench / Hardware / Vehicle as Pending; do not promote ESP32 compile evidence beyond its existing Phase 1 scope, and explicitly note Phase 2A did not require a new ESP32 compile because platform participation/boundary did not change.
 
 Validation / completion:
 - project-required host compile/tests PASS。
