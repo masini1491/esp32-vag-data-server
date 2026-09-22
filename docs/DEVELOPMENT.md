@@ -10,7 +10,7 @@
 - Phase 3: Generic OBD-II read-only（Phase 3A `ReadOnlyGuard` safety gate 與 Phase 3B host service core PASS；DTC / broader service semantics 尚未開始）
 - Phase 4: Generic UDS read-only（Phase 4A `ReadOnlyGuard` `0x22` safety extension 與 Phase 4B host service core PASS；其他 UDS service semantics 尚未開始）
 - Phase 5A: normalized VehicleData sample/value semantics（PASS；Store/Cache、Scheduler 與 registry 尚未開始）
-- Phase 5B: VehicleData Store / Cache（future / pending）
+- Phase 5B: bounded VehicleData Store / Cache（PASS；eviction/TTL/automatic aging、registry 與 Scheduler 尚未開始）
 - Phase 5C: Scheduler core（future / pending）
 - Phase 6: VAG Brand Layer + Kamiq Profile
 - Phase 6a: Brand extension boundary + Brand Profile Set / Active Profile（future implementation planning）
@@ -60,6 +60,6 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 - Hardware PASS：Pending。
 - Vehicle PASS：Pending。
 
-這代表 Phase 1 software foundation components、Stage 4R / Stage 4T hardening、Stage 5 evidence consolidation、Phase 2A host-testable ISO-TP / DiagnosticTransport core、Phase 3A `ReadOnlyGuard` safety gate、Phase 3B Generic OBD-II host service core、Phase 4A UDS `0x22` guard extension、Phase 4B Generic UDS `ReadDataByIdentifier` host service core，以及 Phase 5A normalized VehicleData sample/value semantics 已完成。Phase 4B 僅涵蓋 one-request-at-a-time 的 `0x22` raw DID data、terminal negative NRC 與 bounded `0x78` response-pending；Phase 5A 僅涵蓋單一 brand-independent normalized sample/value representation、copy-safe opaque ID/text、metadata、availability/quality invariants 與 64-bit timestamp，不包含 Store/Cache、Scheduler、registry、profile mapping 或 application-facing diagnostic TX。其他 UDS service、session、DTC、TesterPresent、VAG routing 與 application-facing diagnostic TX 尚未開始。Phase 2A / 3A / 3B / 4A / 4B / 5A 均未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；這不代表實體 TWAI receive 或 vehicle validation 已完成。
+這代表 Phase 1 software foundation components、Stage 4R / Stage 4T hardening、Stage 5 evidence consolidation、Phase 2A host-testable ISO-TP / DiagnosticTransport core、Phase 3A `ReadOnlyGuard` safety gate、Phase 3B Generic OBD-II host service core、Phase 4A UDS `0x22` guard extension、Phase 4B Generic UDS `ReadDataByIdentifier` host service core、Phase 5A normalized VehicleData sample/value semantics，以及 Phase 5B bounded VehicleData Store/Cache 已完成。Phase 4B 僅涵蓋 one-request-at-a-time 的 `0x22` raw DID data、terminal negative NRC 與 bounded `0x78` response-pending；Phase 5A 僅涵蓋單一 brand-independent normalized sample/value representation、copy-safe opaque ID/text、metadata、availability/quality invariants 與 64-bit timestamp；Phase 5B 僅涵蓋 fixed-capacity latest-state ownership、same-ID timestamp ordering、whole-sample replacement 與 copy-based read/snapshot，不包含 eviction、TTL/automatic aging、registry、Scheduler、profile mapping 或 application-facing diagnostic TX。其他 UDS service、session、DTC、TesterPresent、VAG routing 與 application-facing diagnostic TX 尚未開始。Phase 2A / 3A / 3B / 4A / 4B / 5A / 5B 均未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；這不代表實體 TWAI receive 或 vehicle validation 已完成。
 
 Phase 2 v1 implementation 是 ISO-TP over Classic CAN；future non-CAN transports 僅為 architecture boundaries，不新增 K-Line implementation phase，也不改變 Kamiq → T-Roc → RAV4 → Wish validation sequence。
