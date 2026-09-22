@@ -4,6 +4,7 @@
 #include "fake_clock.h"
 #include "isotp_tests.h"
 #include "mock_can.h"
+#include "obd_service_tests.h"
 #include "read_only_guard_tests.h"
 #include "test_helpers.h"
 
@@ -144,5 +145,6 @@ int main() {
   testFakeClock();
   runIsoTpTests();
   runReadOnlyGuardTests();
+  runObdServiceTests();
   return 0;
 }

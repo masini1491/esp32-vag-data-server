@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <initializer_list>
 
 #include "../../src/protocol/read_only_guard.h"
 #include "test_helpers.h"
@@ -26,19 +27,37 @@ class RecordingDiagnosticTransport final : public DiagnosticTransport {
 
   TransportStatus receive(std::uint8_t* payload, std::size_t capacity,
                           std::size_t& length) override {
-    (void)payload;
-    (void)capacity;
-    length = receivedLength;
-    return receiveStatus;
+    const auto status = receiveStatus;
+    length = responseLength;
+    if (status == TransportStatus::Complete) {
+      if (payload == nullptr || capacity < responseLength) {
+        return TransportStatus::Overflow;
+      }
+      for (std::size_t index = 0; index < responseLength; ++index) {
+        payload[index] = response[index];
+      }
+      receiveStatus = TransportStatus::NoData;
+    }
+    return status;
+  }
+
+  void setResponse(std::initializer_list<std::uint8_t> bytes) {
+    responseLength = bytes.size();
+    std::size_t index = 0;
+    for (const auto value : bytes) {
+      response[index++] = value;
+    }
+    receiveStatus = TransportStatus::Complete;
   }
 
   TransportStatus sendStatus = TransportStatus::Complete;
   TransportStatus pollStatus = TransportStatus::Idle;
   TransportStatus receiveStatus = TransportStatus::NoData;
   std::array<std::uint8_t, 2> lastPayload{};
+  std::array<std::uint8_t, 64> response{};
   std::size_t lastLength = 0;
   std::size_t sendCount = 0;
-  std::size_t receivedLength = 0;
+  std::size_t responseLength = 0;
 };
 
 inline void testReadOnlyGuardAllowedRequests() {
@@ -114,7 +133,7 @@ inline void testReadOnlyGuardDelegatesPollAndReceive() {
   RecordingDiagnosticTransport transport;
   transport.pollStatus = TransportStatus::Busy;
   transport.receiveStatus = TransportStatus::NoData;
-  transport.receivedLength = 0;
+  transport.responseLength = 0;
   ReadOnlyGuard guard(transport);
   std::array<std::uint8_t, 8> payload{};
   std::size_t length = 99;
