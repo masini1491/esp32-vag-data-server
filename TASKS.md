@@ -9,7 +9,7 @@
 ---
 ## HOT — Phase 5A normalized VehicleData sample semantics
 
-Status: Ready
+Status: Reconciliation correction required
 
 Goal:
 - 建立 brand-independent、host-testable 的 normalized VehicleData sample/value semantics，作為未來 VehicleData Store/Cache 與 Scheduler 的資料契約。
@@ -73,6 +73,12 @@ Deterministic host-test minimum:
 Actor ownership:
 - Codex: source/tests and Stage-required canonical docs/validation mutation.
 - ChatGPT: readiness/evidence, Stage scope, later code/diff review, canonical reconciliation and coordination cleanup.
+
+Reconciliation finding:
+- Implementation `68864bae3629474ad3a2fa90f5504fb6515653ce` and the Phase 5A host-test/canonical-state updates are accepted for the Stage contract.
+- One current validation-owner inconsistency remains in `VALIDATION.md`: the `ESP32 Compile` row still says the preserved Phase 1 compile was not re-run only through Phase 4B, while the same file's current baseline / Host Test / Required revalidation sections already include Phase 5A.
+- Residual correction is documentation-only: update that ESP32 Compile row so its scope statement also includes Phase 5A and remains explicit that this is preserved Phase 1 evidence, not new Phase 5A ESP32 compile evidence.
+- Do not change source/tests or broaden Phase 5A. Do not alter Bench / Hardware / Vehicle Pending.
 
 Validation / completion:
 - project host compile/tests PASS with new VehicleData sample tests.
