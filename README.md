@@ -1,6 +1,6 @@
 # ESP32 VAG Data Server
 
-**專案狀態：** Architecture Freeze v0.4 完成／Phase 1 software foundation PASS／Phase 2A host core PASS／Phase 3A ReadOnlyGuard PASS／Phase 3B OBD host core PASS／Phase 4A UDS ReadOnlyGuard PASS／Phase 4B UDS host core PASS
+**專案狀態：** Architecture Freeze v0.4 完成／Phase 1 software foundation PASS／Phase 2A host core PASS／Phase 3A ReadOnlyGuard PASS／Phase 3B OBD host core PASS／Phase 4A UDS ReadOnlyGuard PASS／Phase 4B UDS host core PASS／Phase 5A normalized VehicleData sample semantics PASS
 
 ## 專案目的
 
@@ -31,6 +31,7 @@ v1 concrete path 維持 ESP32-S3 + Classic CAN/TWAI + ISO-TP + OBD-II/UDS + VAG�
 - Phase 3B Generic OBD-II read-only host service：one outstanding request、Mode `0x01` raw data / supported-PID bitmap、Mode `0x09` PID `0x02` VIN response validation，以及 deterministic host tests（implementation `5e038fc114b5ea5b1bab6c1b517023f1e43e35c9`）
 - Phase 4A Generic `ReadOnlyGuard` UDS extension：只允許 semantic `ReadDataByIdentifier (0x22)` single-DID request，guard 內部建立 `22 DID_hi DID_lo`，以及 deterministic host tests（implementation `4b8609302dc6569af53d7718d4ea75c152c682cb`）
 - Phase 4B Generic UDS `ReadDataByIdentifier` host service：one outstanding DID read、`0x62` positive matching、terminal NRC 與 bounded `0x78` response-pending，以及 deterministic host tests（implementation `59a10b0f6453c07bc65f370bd6186b0f46e4a997`）
+- Phase 5A normalized VehicleData sample/value semantics：opaque signal ID、normalized unit/source/quality/availability metadata、numeric/boolean/bounded text values、copy-safe storage、64-bit monotonic timestamp，以及 deterministic host tests（implementation `68864ba`）
 
 目前 Bench、Hardware 與 Vehicle validation 均為 Pending。
 
@@ -147,9 +148,9 @@ Realtime clients 預計優先讀取 `VehicleData Cache`，不因為瀏覽器 ref
 
 ## 目前開發狀態
 
-已完成 Phase 1 software foundation、Phase 2A host core、Phase 3A `ReadOnlyGuard` safety gate、Phase 3B Generic OBD-II read-only host service、Phase 4A UDS `ReadOnlyGuard` safety extension，以及 Phase 4B Generic UDS host service：Generic CAN model、Board / HardwareConfig / CAN HAL abstraction、deterministic Mock CAN / Fake Clock、ESP32-S3 TWAI Classic CAN backend、host CI regression tests、Classic CAN ISO-TP / `DiagnosticTransport` core、semantic OBD allowlist／host semantics、UDS `0x22` guard，以及 one-request-at-a-time 的 raw DID data / negative NRC / bounded response-pending semantics。Phase 2A 為 `43a550de`；Phase 3A 為 `5eefb44`；Phase 3B 為 `5e038fc`；Phase 4A 為 `4b86093`；Phase 4B 為 `59a10b0`；皆有 local host compile/test PASS，Phase 2A GitHub Actions run `35688710299` PASS。
+已完成 Phase 1 software foundation、Phase 2A host core、Phase 3A `ReadOnlyGuard` safety gate、Phase 3B Generic OBD-II read-only host service、Phase 4A UDS `ReadOnlyGuard` safety extension、Phase 4B Generic UDS host service，以及 Phase 5A normalized VehicleData sample/value semantics：Generic CAN model、Board / HardwareConfig / CAN HAL abstraction、deterministic Mock CAN / Fake Clock、ESP32-S3 TWAI Classic CAN backend、host CI regression tests、Classic CAN ISO-TP / `DiagnosticTransport` core、semantic OBD allowlist／host semantics、UDS `0x22` guard、one-request-at-a-time 的 raw DID data / negative NRC / bounded response-pending semantics，以及 brand-independent 的 opaque signal sample/value representation。Phase 2A 為 `43a550de`；Phase 3A 為 `5eefb44`；Phase 3B 為 `5e038fc`；Phase 4A 為 `4b86093`；Phase 4B 為 `59a10b0`；Phase 5A 為 `68864ba`；以上已有 local host compile/test PASS，Phase 2A GitHub Actions run `35688710299` PASS。
 
-尚未開始或尚未完成：其他 Generic UDS services、session lifecycle、DTC modes、TesterPresent、VAG DID/scaling、VehicleData / Scheduler implementation、VAG Brand Layer / Kamiq profile implementation、application-facing diagnostic TX、BLE、Web、passive CAN decoding，以及 real hardware / vehicle validation。Phase 2A / 3A / 3B / 4A / 4B 未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；既有 Phase 1 ESP32 compile evidence 維持原 scope。Bench、Hardware、Vehicle 仍為 Pending。
+尚未開始或尚未完成：其他 Generic UDS services、session lifecycle、DTC modes、TesterPresent、VehicleData Store/Cache、Scheduler、signal/capability registry、VAG DID/scaling、VAG Brand Layer / Kamiq profile implementation、application-facing diagnostic TX、BLE、Web、passive CAN decoding，以及 real hardware / vehicle validation。Phase 2A / 3A / 3B / 4A / 4B / 5A 未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；既有 Phase 1 ESP32 compile evidence 維持原 scope。Bench、Hardware、Vehicle 仍為 Pending。
 
 研究與開發規劃詳見 [Development roadmap](docs/DEVELOPMENT.md)；upstream reference index 見 [REFERENCES.md](docs/REFERENCES.md)。
 
