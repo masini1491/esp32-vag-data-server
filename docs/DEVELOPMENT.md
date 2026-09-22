@@ -6,7 +6,7 @@
 - Phase 1A-2: Deterministic Mock CAN / Fake Clock / host tests（本輪；不含 ISO-TP）
 - Phase 1A-3: ESP32-S3 Classic CAN / TWAI backend（本輪；不含 protocol behavior）
 - Phase 1A-4: Foundation consolidation / Phase 1 implementation gate（本輪）
-- Phase 2: ISO-TP / DiagnosticTransport boundary
+- Phase 2A: Host-testable Classic CAN ISO-TP / DiagnosticTransport boundary（PASS；後續 service/application layers 尚未開始）
 - Phase 3: Generic OBD-II read-only
 - Phase 4: Generic UDS read-only + ReadOnlyGuard
 - Phase 5: VehicleData + Scheduler
@@ -58,6 +58,6 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 - Hardware PASS：Pending。
 - Vehicle PASS：Pending。
 
-這代表 Phase 1 software foundation components、Stage 4R / Stage 4T hardening 與 Stage 5 evidence consolidation 已完成；Phase 2 ISO-TP 尚未開始，可另行明確授權進入 implementation。這不代表實體 TWAI receive 或 vehicle validation 已完成。
+這代表 Phase 1 software foundation components、Stage 4R / Stage 4T hardening、Stage 5 evidence consolidation 與 Phase 2A host-testable ISO-TP / DiagnosticTransport core 已完成；OBD-II、UDS、ReadOnlyGuard runtime、VAG routing、VehicleData 與 application-facing diagnostic TX 尚未開始。Phase 2A 未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；這不代表實體 TWAI receive 或 vehicle validation 已完成。
 
 Phase 2 v1 implementation 是 ISO-TP over Classic CAN；future non-CAN transports 僅為 architecture boundaries，不新增 K-Line implementation phase，也不改變 Kamiq → T-Roc → RAV4 → Wish validation sequence。

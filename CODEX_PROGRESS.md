@@ -1,6 +1,6 @@
 # Project State Summary
 
-Reviewed: 2026-09-01
+Reviewed: 2026-09-22
 
 This file is the human-readable historical project-state summary. It is not the active work queue; current unfinished work is kept only in `TASKS.md`, and current validation authority is `VALIDATION.md`.
 
@@ -8,7 +8,8 @@ This file is the human-readable historical project-state summary. It is not the 
 
 - Architecture Freeze v0.4 is established.
 - Phase 1 software foundation is established: Generic CAN types, Board Profile → HardwareConfig → HAL, deterministic Mock CAN / Fake Clock, and the ESP32-S3 TWAI backend.
-- Phase 2 ISO-TP implementation has not started.
+- Phase 2A host-testable Classic CAN ISO-TP / `DiagnosticTransport` core is implemented at `43a550de1e835fffad22e63f29e03943b6dea6c5`; local host compile/tests and GitHub Actions host-tests run `35688710299` passed.
+- Phase 2 service/application layers remain unstarted: OBD-II, UDS, `ReadOnlyGuard` runtime, VAG routing, VehicleData and application-facing diagnostic TX.
 - The project remains VAG-first, with Škoda Kamiq as the primary vehicle validation target. Portability order remains Kamiq → T-Roc → RAV4 → Wish.
 
 ## Long-term decisions
@@ -21,4 +22,4 @@ This file is the human-readable historical project-state summary. It is not the 
 ## Important revalidation state
 
 - ESP32 TWAI backend participation in the standard Arduino build, Stage 4R runtime hardening and Stage 4T TX acceptance/backpressure correction are reflected in the current evidence; physical behavior remains Pending. See `VALIDATION.md` for current evidence and Pending authority.
-- Phase 2 ISO-TP has not started. This summary is historical and not a second queue or validation ledger; detailed changes remain in Git history.
+- Phase 2A host-core evidence is current at `43a550de`; ESP32 compile was not re-run because ESP32-facing source participation / platform boundary did not change. This summary is historical and not a second queue or validation ledger; detailed changes remain in Git history.

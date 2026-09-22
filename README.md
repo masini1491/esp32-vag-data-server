@@ -1,10 +1,10 @@
 # ESP32 VAG Data Server
 
-**專案狀態：** Architecture Freeze v0.4 完成／Phase 1 software foundation PASS
+**專案狀態：** Architecture Freeze v0.4 完成／Phase 1 software foundation PASS／Phase 2A host core PASS
 
 ## 專案目的
 
-本專案建立一個以 ESP32-S3 family 為平台的 Volkswagen Group 唯讀 vehicle data server，將 Vehicle CAN 的被動與診斷資料正規化為 `VehicleData`，供 BLE、Wi-Fi Web UI 與 Logger 使用。Phase 1 software foundation 已完成，但尚未代表實車支援或整個專案完成。
+本專案建立一個以 ESP32-S3 family 為平台的 Volkswagen Group 唯讀 vehicle data server，將 Vehicle CAN 的被動與診斷資料正規化為 `VehicleData`，供 BLE、Wi-Fi Web UI 與 Logger 使用。Phase 1 software foundation 與 Phase 2A host-testable Classic CAN ISO-TP / `DiagnosticTransport` core 已完成，但尚未代表實車支援或整個專案完成。
 
 本專案目前仍以 VAG / Kamiq 為第一目標。Generic Core 刻意分離 transport、diagnostic protocol、brand semantics、Vehicle Profile 與 `VehicleData`；未來可能透過 Brand Layer / Vehicle Profile 擴充其他品牌，但目前不宣稱 multi-brand support。
 
@@ -25,6 +25,8 @@ v1 concrete path 維持 ESP32-S3 + Classic CAN/TWAI + ISO-TP + OBD-II/UDS + VAG�
 - ESP32 generic S3 compile validation（Arduino CLI / Arduino-ESP32 3.3.11；`src/esp32_twai_can.cpp` participation PASS）
 - GitHub Actions host compile / test CI
 - CAN foundation edge-case regression tests
+- Host-testable Classic CAN ISO-TP / `DiagnosticTransport` core
+- Phase 2A deterministic ISO-TP host tests；GitHub Actions run `35688710299` PASS at `43a550de1e835fffad22e63f29e03943b6dea6c5`
 
 目前 Bench、Hardware 與 Vehicle validation 均為 Pending。
 
@@ -141,9 +143,9 @@ Realtime clients 預計優先讀取 `VehicleData Cache`，不因為瀏覽器 ref
 
 ## 目前開發狀態
 
-已完成 Phase 1 software foundation：Generic CAN model、Board / HardwareConfig / CAN HAL abstraction、deterministic Mock CAN / Fake Clock、ESP32-S3 TWAI Classic CAN backend、host CI regression tests，以及 CAN foundation edge-case tests。
+已完成 Phase 1 software foundation 與 Phase 2A host core：Generic CAN model、Board / HardwareConfig / CAN HAL abstraction、deterministic Mock CAN / Fake Clock、ESP32-S3 TWAI Classic CAN backend、host CI regression tests、CAN foundation edge-case tests，以及 Classic CAN ISO-TP / `DiagnosticTransport` framing/state-machine core。Phase 2A implementation commit 為 `43a550de`；local host compile/test 與 GitHub Actions run `35688710299` PASS。
 
-尚未開始或尚未完成：ISO-TP、OBD-II、UDS、ReadOnlyGuard runtime path、VehicleData / Scheduler implementation、VAG Brand Layer / Kamiq profile implementation、BLE、Web、passive CAN decoding，以及 real hardware / vehicle validation。ISO-TP 是下一階段，尚未開始。
+尚未開始或尚未完成：OBD-II、UDS、ReadOnlyGuard runtime path、VehicleData / Scheduler implementation、VAG Brand Layer / Kamiq profile implementation、application-facing diagnostic TX、BLE、Web、passive CAN decoding，以及 real hardware / vehicle validation。Phase 2A 未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；既有 Phase 1 ESP32 compile evidence 維持原 scope。Bench、Hardware、Vehicle 仍為 Pending。
 
 研究與開發規劃詳見 [Development roadmap](docs/DEVELOPMENT.md)；upstream reference index 見 [REFERENCES.md](docs/REFERENCES.md)。
 
