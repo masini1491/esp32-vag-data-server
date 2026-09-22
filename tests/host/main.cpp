@@ -8,6 +8,7 @@
 #include "read_only_guard_tests.h"
 #include "test_helpers.h"
 #include "uds_service_tests.h"
+#include "vehicle_data_tests.h"
 
 namespace {
 
@@ -148,5 +149,6 @@ int main() {
   runReadOnlyGuardTests();
   runObdServiceTests();
   runUdsServiceTests();
+  runVehicleDataTests();
   return 0;
 }
