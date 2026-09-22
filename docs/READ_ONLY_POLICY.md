@@ -13,3 +13,4 @@
 - 此 safety gate 不代表 OBD-II response parser、UDS、DTC service semantics、VAG routing 或 application-facing diagnostic TX 已實作。
 - Phase 3B Generic OBD-II host service 只可經 `ReadOnlyGuard` 發出 Mode `0x01` single-PID request、supported-PID block request，或固定的 Mode `0x09` PID `0x02` VIN request。它不提供 arbitrary raw payload、DTC mode、UDS 或 application-facing diagnostic TX。
 - Phase 4A `ReadOnlyGuard` safety extension 只允許 semantic UDS `ReadDataByIdentifier (0x22)` single-DID request，並由 guard 內部建立 `22 DID_hi DID_lo`。此 extension 不包含 UDS response parser、NRC、session lifecycle、DTC、TesterPresent、VAG DID 或 scaling semantics。
+- Phase 4B Generic UDS host service 只可經上述 guard 執行 one-request-at-a-time 的 `0x22` single-DID read，並處理 `0x62 DID <raw data>`、terminal `7F 22 NRC` 與 bounded `7F 22 78` response-pending。它不新增其他 UDS service、session／DTC／TesterPresent、VAG DID/scaling 或 application-facing diagnostic TX。
