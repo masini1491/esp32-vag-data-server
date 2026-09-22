@@ -110,3 +110,86 @@ Minimum representative tests:
 - No frame timestamp refactor.
 - No application diagnostic TX changes.
 - Bench / Hardware / Vehicle remain Pending.
+
+
+## Phase 5B readiness finalization
+
+Phase 5A normalized sample/value semantics completed at `68864bae3629474ad3a2fa90f5504fb6515653ce` and were canonically closed at `b16a5fd6708ff60204d5bb67e8d195935e93169f`.
+
+No external discovery is required for Phase 5B. The remaining problem is a project-specific bounded latest-state cache over the already-frozen `NormalizedVehicleSample` contract, and current project architecture plus the shared Playbook provide sufficient ownership/complexity constraints.
+
+### Phase 5B owner
+
+Owner sentence:
+> Phase 5B owns a bounded in-memory latest-state set keyed by opaque normalized signal ID; it does not own timestamp generation, source priority/arbitration, profile/capability registry, polling/scheduling, persistence, serialization or eviction policy.
+
+### Phase 5B exact Store / Cache semantics
+
+The first Store / Cache slice should be deliberately small and deterministic:
+
+- Generic Core only; no Arduino/ESP32/CAN/TWAI/VAG types.
+- Store complete `NormalizedVehicleSample` values keyed only by their opaque normalized signal ID.
+- Use fixed / compile-time bounded capacity with no dynamic allocation requirement or unbounded growth.
+- Duplicate logical IDs are not stored. An upsert for an existing ID updates that entry in place.
+- The store does not call `Clock`; it consumes the timestamp already carried by each normalized sample.
+- Same-ID ordering:
+  - incoming timestamp < stored timestamp → ignore as older, do not mutate current state;
+  - incoming timestamp == stored timestamp → accept, with later call winning deterministically;
+  - incoming timestamp > stored timestamp → accept and replace current state.
+- Equal-timestamp last-call-wins is only a deterministic tie rule. It does not create source priority or multi-producer arbitration semantics.
+- Whole-sample replacement is atomic at the Store contract level: value, unit, source, quality, availability and timestamp move together.
+- Availability/status transitions use the same ordering rules as value updates.
+- An accepted non-`Available` sample replaces the prior sample and therefore exposes no current value. The Store must not secretly retain a hidden old value behind `Unavailable` / `Pending` / `Unsupported` / `Unknown`.
+- If a producer intentionally wants to retain a last-known value, it must submit an `Available + Stale` sample. The Store does not synthesize stale state or aging.
+- Full-capacity behavior:
+  - update of an already-present ID still succeeds according to timestamp ordering;
+  - insertion of a new ID when full returns a deterministic full/capacity result and leaves all stored entries unchanged;
+  - no automatic oldest/newest/source/quality eviction in Phase 5B.
+- Read API returns/copies the current sample for an ID without exposing mutable internal storage.
+- Snapshot API is bounded and copy-based for future clients. It should preserve deterministic insertion-slot order; updates to an existing ID do not reorder that entry.
+- A snapshot request whose caller-provided capacity is insufficient must report insufficient capacity without presenting a partial snapshot as complete. Exact result symbols/API spelling remain implementation detail.
+- No erase/TTL/automatic expiry behavior is required in this Stage.
+- No internal mutex/thread/task ownership is added. Phase 5B is single-owner / externally serialized by contract; concurrency ownership belongs to later integration once a real scheduler/runtime owner exists.
+
+### Why no eviction / aging / arbitration yet
+
+Shared Playbook architecture rules require semantic identity, ordering and bounded buffering to have explicit ownership, and specifically warn against inventing scheduler/cache/arbitration complexity from hypothetical future collisions.
+
+Current repository evidence has no profile registry, no producer-priority contract and no Scheduler implementation. Therefore:
+- eviction would invent a priority policy with no authority;
+- automatic aging would invent a timing/polling lifecycle owned by future Scheduler/profile semantics;
+- source arbitration would invent profile-level precedence;
+- locks/concurrency would invent a runtime ownership model before a representative consumer exists.
+
+Fail-closed fixed capacity plus timestamp convergence is the minimum sufficient Store contract.
+
+### Phase 5B deterministic test intent
+
+Minimum host scenarios:
+- insert one available sample; lookup returns an equal copy and size becomes one;
+- second sample with same ID and newer timestamp replaces the whole prior sample without increasing size;
+- same ID with equal timestamp is accepted and later call wins deterministically;
+- same ID with older timestamp is ignored and stored state is unchanged;
+- timestamp ordering works above `UINT32_MAX` without truncation;
+- `Available → Unavailable/Pending/Unsupported/Unknown` accepted transition removes current value according to sample semantics;
+- stale last-known value is retained only when incoming sample itself is `Available + Stale`;
+- full store rejects a new ID without evicting or mutating existing entries;
+- full store still allows valid update of an existing ID;
+- snapshot copies all entries in deterministic stable order when caller capacity is sufficient;
+- insufficient snapshot capacity is reported without claiming a complete partial snapshot;
+- read/snapshot copies cannot mutate internal Store state;
+- source/API inspection confirms no Clock ownership, CAN/TWAI/VAG dependency, registry/profile schema, Scheduler, eviction, persistence, serialization or global mutable singleton is introduced;
+- all existing VehicleData sample and diagnostic host regressions remain PASS.
+
+### Phase 5C remains deferred
+
+Scheduler remains a separate later Stage. Phase 5B does not freeze:
+- startup / periodic / on-demand / realtime-triggered job model;
+- polling cadence;
+- callback/executor shape;
+- diagnostic service arbitration;
+- automatic stale/expiry timing;
+- profile polling policy;
+- concurrency/thread/task ownership.
+
+Those decisions require the now-concrete Phase 5A sample and Phase 5B store semantics plus a representative producer/consumer flow.
