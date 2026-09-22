@@ -97,20 +97,39 @@ Required behavior:
 
 This Stage should be completed before the OBD service client exists.
 
-### Phase 3B — Generic OBD-II read-only service semantics (not admitted yet)
+### Phase 3B — Generic OBD-II read-only service semantics
 
-After Phase 3A completes, a separate readiness/admission may cover:
-- one outstanding request at a time;
-- Mode `01` single-PID request/response validation;
-- supported PID discovery via `00/20/40/...`;
-- Mode `09` PID `02` VIN response validation/assembly;
-- positive response mode / PID matching;
-- deterministic service-level no-response timeout using `Clock`;
-- malformed/unexpected response handling;
-- no multi-PID optimization in the first slice;
-- no functional broadcast / multi-ECU aggregation; ECU/routing ownership remains outside Generic OBD service semantics;
-- no DTC read expansion unless separately admitted;
-- no VehicleData mapping yet.
+Phase 3A is now complete at `5eefb442bc00e58005cc933fa6d56ab8bbe45ef6`; the outbound safety gate is available and Phase 3B may depend on it directly.
+
+Bounded public protocol recheck was completed against the current CSS Electronics OBD2 overview / PID table:
+- Mode `01` positive response service is `0x41`; generic positive response identity is request mode + `0x40`.
+- Mode `01` PID `00` reports support for PIDs `01–20`; `20/40/.../C0` are subsequent support blocks.
+- Mode `09` PID `02` requests VIN; the positive response service is `0x49`, and the common single-VIN response contains NODI `0x01` followed by 17 VIN bytes after service/PID.
+- Multi-frame VIN transport is already handled below this layer by ISO-TP; OBD service semantics should consume the reassembled payload rather than reason about FF/CF/FC.
+
+Phase 3B minimum service contract:
+- depend on `ReadOnlyGuard` and `Clock`, not directly on `DiagnosticTransport`, CAN or TWAI;
+- exactly one outstanding OBD request at a time;
+- semantic Mode `01` single-PID request plus positive response mode/PID matching;
+- supported-PID block request/parse for `00/20/40/60/80/A0/C0`; return a 32-bit mask for one block at a time rather than auto-querying multiple ECUs or creating a scheduler;
+- semantic VIN request fixed to Mode `09` PID `02`, with bounded validation of response service/PID/NODI/17-byte VIN payload;
+- deterministic response/no-response timeout using `Clock`;
+- lower guard/transport start and poll failures propagate without being reported as service success;
+- unrelated/mismatched response must never satisfy the outstanding request; it may be reported as unexpected while the original request remains pending until a valid response or timeout;
+- matching but structurally invalid supported-PID/VIN response is a service-level invalid-response failure;
+- generic Mode `01` data is returned as raw service data bytes in this slice; no SAE PID scaling/physical-unit conversion yet.
+
+Phase 3B non-goals:
+- no DTC modes;
+- no UDS;
+- no Mode `04`;
+- no arbitrary raw diagnostic TX;
+- no automatic functional-broadcast or multi-ECU aggregation;
+- no CAN ID/routing ownership;
+- no scheduler/poll cadence;
+- no PID scaling database;
+- no VehicleData mapping;
+- no VAG-specific semantics.
 
 ## Non-goals / unchanged state
 
