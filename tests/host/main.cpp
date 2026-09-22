@@ -4,6 +4,7 @@
 #include "fake_clock.h"
 #include "isotp_tests.h"
 #include "mock_can.h"
+#include "read_only_guard_tests.h"
 #include "test_helpers.h"
 
 namespace {
@@ -142,5 +143,6 @@ int main() {
   testMockCanTxAndReset();
   testFakeClock();
   runIsoTpTests();
+  runReadOnlyGuardTests();
   return 0;
 }
