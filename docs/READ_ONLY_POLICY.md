@@ -9,4 +9,5 @@
 - Future backend 必須有真正的 `ReadOnlyGuard`，不能只隱藏 UI。
 - Web、BLE、API 不得提供 arbitrary raw UDS TX bypass。
 - 任何 diagnostic TX path 必須在送出前經 guard，並以 allowlist 驗證 service 與 operation。
-- 本輪不建立實作；此文件是後續實作的約束。
+- Phase 3A 已建立最小 `ReadOnlyGuard` outbound enforcement：只接受 semantic 的 OBD Mode `0x01` 或 `0x09` single-PID request，並由 guard 內部建立兩位元組 payload。所有其他 mode、multi-PID 或 malformed request 都 fail-closed，且不呼叫下層 transport TX。
+- 此 safety gate 不代表 OBD-II response parser、UDS、DTC service semantics、VAG routing 或 application-facing diagnostic TX 已實作。
