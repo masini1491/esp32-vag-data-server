@@ -7,6 +7,7 @@
 #include "obd_service_tests.h"
 #include "read_only_guard_tests.h"
 #include "test_helpers.h"
+#include "uds_service_tests.h"
 
 namespace {
 
@@ -146,5 +147,6 @@ int main() {
   runIsoTpTests();
   runReadOnlyGuardTests();
   runObdServiceTests();
+  runUdsServiceTests();
   return 0;
 }
