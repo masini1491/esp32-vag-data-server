@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include "fake_clock.h"
+#include "isotp_tests.h"
 #include "mock_can.h"
 #include "test_helpers.h"
 
@@ -140,5 +141,6 @@ int main() {
   testMockCanRxFifo();
   testMockCanTxAndReset();
   testFakeClock();
+  runIsoTpTests();
   return 0;
 }

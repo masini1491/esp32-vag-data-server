@@ -32,6 +32,10 @@ class MockCan final : public CanHal {
       failNextTx_ = false;
       return CanStatus::TxFailed;
     }
+    if (hasNextTxStatus_) {
+      hasNextTxStatus_ = false;
+      return nextTxStatus_;
+    }
     txFrames_.push_back(frame);
     return CanStatus::Ok;
   }
@@ -57,16 +61,24 @@ class MockCan final : public CanHal {
     txFrames_.clear();
     failNextTx_ = false;
     failInitialization_ = false;
+    hasNextTxStatus_ = false;
+    nextTxStatus_ = CanStatus::Ok;
     initialized_ = false;
   }
 
   void failNextTx() { failNextTx_ = true; }
   void failInitialization() { failInitialization_ = true; }
+  void setNextTxStatus(CanStatus status) {
+    nextTxStatus_ = status;
+    hasNextTxStatus_ = true;
+  }
 
  private:
   bool initialized_{false};
   bool failNextTx_{false};
   bool failInitialization_{false};
+  bool hasNextTxStatus_{false};
+  CanStatus nextTxStatus_{CanStatus::Ok};
   std::deque<CanFrame> rxFrames_;
   std::vector<CanFrame> txFrames_;
 };
