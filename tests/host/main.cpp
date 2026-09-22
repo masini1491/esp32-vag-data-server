@@ -9,6 +9,7 @@
 #include "test_helpers.h"
 #include "uds_service_tests.h"
 #include "vehicle_data_tests.h"
+#include "vehicle_data_store_tests.h"
 
 namespace {
 
@@ -150,5 +151,6 @@ int main() {
   runObdServiceTests();
   runUdsServiceTests();
   runVehicleDataTests();
+  runVehicleDataStoreTests();
   return 0;
 }
