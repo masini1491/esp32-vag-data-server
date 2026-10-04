@@ -5,27 +5,35 @@
 - Codex 工作回報使用繁體中文。
 - Source code symbol / API / protocol name 保持原文；文件以繁體中文為主，必要技術名稱使用英文。
 
-## AI Development Playbook adoption
+## AI Development Playbook baseline
 
 本專案採用 `masini1491/ai-development-playbook` 作為共通 development baseline。
 Playbook baseline: main
 Project AI mode: ChatGPT+Codex
+Shared reporting contract: declared Playbook baseline → REPORTING.md
+Applicability: substantive user-facing engineering replies follow the shared reporting contract even when no other shared Playbook owner is activated.
 
 新 ChatGPT／AI／coding-agent session 的最小 bootstrap 順序為：
 
-1. 先依本 project governance 與 current `TASKS.md` 確認 repository、work-state 與本地 authority。
-2. 只有 activation 需要時，才 resolve 宣告 baseline 的 immutable revision、讀取其 `CHAT_INIT.md`，並依 router 讀取最低充分 canonical owner。
+1. 先確認 target repository、branch 與 workspace identity，再讀 current project governance 及相關 current coordination state。
+2. Shared reporting 是窄化的 adoption-level exception；substantive user-facing engineering replies 遵守 declared baseline 的 `REPORTING.md`，但 reporting 本身不啟用 `CHAT_INIT.md`。
+3. 若 project-native routing 判定本次不需要其他 shared Playbook governance，維持 project-native route。
+4. 需要其他 shared Playbook governance 時，先將唯一宣告的 baseline resolve 為當次 exact revision，再讀該 revision 的 `CHAT_INIT.md`，並只讀最低必要 canonical owner／sections。
 
-Project-specific governance 與 technical source of truth 高於 common Playbook。採用 Playbook 本身不會新增或擴張 ChatGPT、Codex 或其他 agent 的 repository write、execution、deployment、credential、secret 或 external-service authority。
+採用 Playbook、Project AI mode 或工具 capability 不會擴張 Task、write、execution、permission、validation、deployment 或 completion authority。
+
+## Authority boundary
+
+Project-specific authority remains with this `AGENTS.md`, the declared technical sources, and the current Hot coordination surface `TASKS.md`; `BACKLOG.md` remains a Cold Registry without execution authority.
+
+Playbook adoption / Project AI mode 不會跳過 Current Write Target、Task/Stage authorization、execution permission、credentials、validation、release/deployment 或其他 project-specific authority。
+
+## Project-specific minimum contract
 
 - Canonical technical source(s): `docs/ARCHITECTURE.md`; `VALIDATION.md`; `src/`; `tests/`; this `AGENTS.md`
 - Current coordination surface: `TASKS.md`
 - Required validation: `git diff --check`; current `TASKS.md` / `VALIDATION.md` requirements; Bench／Hardware／Vehicle evidence remains Pending without physical evidence
 - Project-specific exceptions or restrictions: GitHub `main` source-of-truth with clean fast-forward-only sync; ChatGPT Coordination Write Allowlist `/TASKS.md`, `/BACKLOG.md` and sanitized `/evidence/inbox/*.md`; read-only diagnostic policy; physical evidence cannot be inferred from software or compile evidence
-
-## Authority boundary
-
-Project-specific authority remains with this `AGENTS.md`, the declared technical sources, and the current Hot coordination surface `TASKS.md`; `BACKLOG.md` remains a Cold Registry without execution authority.
 
 ## Source of truth and Git safety
 
