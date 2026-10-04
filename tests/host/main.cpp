@@ -11,6 +11,7 @@
 #include "vehicle_data_tests.h"
 #include "vehicle_data_store_tests.h"
 #include "scheduler_tests.h"
+#include "profile_selection_tests.h"
 
 namespace {
 
@@ -154,5 +155,6 @@ int main() {
   runVehicleDataTests();
   runVehicleDataStoreTests();
   runSchedulerTests();
+  runProfileSelectionTests();
   return 0;
 }
