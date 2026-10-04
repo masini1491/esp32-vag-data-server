@@ -1,6 +1,6 @@
 # Project State Summary
 
-Reviewed: 2026-09-22
+Reviewed: 2026-10-04
 
 This file is the human-readable historical project-state summary. It is not the active work queue; current unfinished work is kept only in `TASKS.md`, and current validation authority is `VALIDATION.md`.
 
@@ -15,7 +15,8 @@ This file is the human-readable historical project-state summary. It is not the 
 - Phase 4B Generic UDS `ReadDataByIdentifier` host service core is implemented at `59a10b0f6453c07bc65f370bd6186b0f46e4a997`; it provides one outstanding `0x22` DID read, raw positive data, terminal negative NRC and bounded `0x78` response-pending behavior through `ReadOnlyGuard`.
 - Phase 5A normalized VehicleData sample/value semantics are implemented at `68864ba`; they provide an opaque signal ID, normalized metadata, numeric/boolean/bounded text values, copy-safe storage, explicit availability/quality states and a 64-bit monotonic timestamp without introducing a registry, Store/Cache or Scheduler.
 - Phase 5B bounded VehicleData Store/Cache is implemented at `d7b8552`; it provides fixed-capacity latest-state storage keyed by opaque signal ID, timestamp-ordered whole-sample replacement and copy-based lookup/snapshot without eviction, automatic aging, registry or Scheduler ownership.
-- Other UDS services, session/DTC/TesterPresent behavior, VAG routing, VehicleData eviction/TTL/automatic aging, Scheduler, signal/capability registry and application-facing diagnostic TX remain unstarted.
+- Phase 5C cooperative Scheduler core is implemented at `96203ffe5e66f0a4abf8c0c19b6fd82ffe681159`: fixed-capacity opaque jobs, injected Clock, Startup/Periodic/OnDemand policies, registration-order dispatch, single active job and external completion. Periodic cadence is deadline-anchored and skips missed periods. This kernel does not own callbacks, protocol execution, Store updates or profile/application integration.
+- Other UDS services, session/DTC/TesterPresent behavior, VAG routing, VehicleData eviction/TTL/automatic aging, Scheduler application integration, signal/capability registry and application-facing diagnostic TX remain unstarted.
 - The project remains VAG-first, with Škoda Kamiq as the primary vehicle validation target. Portability order remains Kamiq → T-Roc → RAV4 → Wish.
 
 ## Long-term decisions
@@ -35,3 +36,4 @@ This file is the human-readable historical project-state summary. It is not the 
 - Phase 4B host tests passed at `59a10b0`; no ESP32 compile was re-run because the Generic Core UDS service did not change ESP32-facing source participation or the platform boundary. This does not establish live UDS runtime or physical evidence.
 - Phase 5A host tests passed for the current implementation; no ESP32 compile was re-run because the Generic Core sample/value header did not change ESP32-facing source participation or the platform boundary. This does not establish VehicleData Store/Cache, Scheduler or physical evidence.
 - Phase 5B host tests passed at `d7b8552`; no ESP32 compile was re-run because the Generic Core Store/Cache header did not change ESP32-facing source participation or the platform boundary. This does not establish eviction, automatic aging, Scheduler or physical evidence.
+- Phase 5C local host compile/tests passed at `96203ff` with clang 22.1.8, including all existing diagnostic and VehicleData regressions. ESP32 compile was not re-run because the scheduler header does not change ESP32-facing source participation/platform boundary. Bench, Hardware and Vehicle remain Pending.
