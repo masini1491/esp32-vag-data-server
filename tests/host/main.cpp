@@ -10,6 +10,7 @@
 #include "uds_service_tests.h"
 #include "vehicle_data_tests.h"
 #include "vehicle_data_store_tests.h"
+#include "scheduler_tests.h"
 
 namespace {
 
@@ -152,5 +153,6 @@ int main() {
   runUdsServiceTests();
   runVehicleDataTests();
   runVehicleDataStoreTests();
+  runSchedulerTests();
   return 0;
 }
