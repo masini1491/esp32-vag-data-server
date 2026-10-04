@@ -18,6 +18,7 @@
 | [PyVCDS](https://github.com/baconwaifu/PyVCDS) | Historical VW workflow | Research | `REFERENCE_ONLY` | No source reuse; provenance unclear | [note](references/vag/PYVCDS.md) |
 | [MQB-sniffer](https://github.com/mrfixpl/MQB-sniffer) | Read-only research method | Phase 6 / research | `REFERENCE_ONLY` | No source reuse; license unclear | [note](references/vag/MQB_SNIFFER.md) |
 | [vehicle_coverage](https://github.com/CanBusHack/vehicle_coverage) | Kamiq 2024 coverage | Phase 6, 9 | `UPSTREAM_COVERAGE_CONFIRMED` | No raw data; provenance restricted | [note](references/vag/VEHICLE_COVERAGE.md) |
+| [Telltale](https://gitlab.com/aa22396584/telltale) | Diagnostic/data-quality patterns; research method/data pipeline | Phase 6, 8, 10 | `REFERENCE_PATTERN` | GPL-3.0; no direct source reuse | [note](references/vag/TELLTALE.md) |
 
 ## Future K-Line portability evidence
 

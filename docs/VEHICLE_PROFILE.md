@@ -35,7 +35,9 @@ Resolver 的可能 evidence 包含 VIN、ECU identification、firmware fingerpri
 
 ## Capabilities
 
-不同 profile 的 capabilities 可以不同，包含 Realtime Telemetry、Generic OBD-II、ECU Identification、Read DTC、Passive CAN、ACC Data、SRS Live Data 或其他 optional diagnostics。不存在的 capability 為 `unsupported`；暫時讀不到為 `unavailable`；尚未驗證為 `pending` / `unknown`，不得用假值代替。
+不同 profile 的 capabilities 可以不同，包含 Realtime Telemetry、Generic OBD-II、ECU Identification、Read DTC、Passive CAN、ACC Data、SRS Live Data 或其他 optional diagnostics。Capability support authority 必須與 transient runtime availability 分開：只有單次 read failure、timeout 或 `NO DATA` 不足以判定 `unsupported`；support 未驗證時維持 `pending` / `unknown`，暫時無法讀取則表達為 `unavailable`。
+
+多個 ECU/controller 回應互相矛盾時，在 Profile/source 尚無明確 arbitration authority 前必須保留 `Ambiguous` / unresolved，不得依 first/last response、registration order 或數值看似合理來選值。Malformed payload、unsupported decode/scaling、out-of-range data 或語意不足必須 fail closed；不得產生看似正常的 VehicleData value，也不得以零值、猜測或近似 scaling 暗中代替。
 
 ## Current VAG target
 

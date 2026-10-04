@@ -18,6 +18,8 @@ Read-only concepts 可參考 OBD PID/VIN/DTC read、UDS `0x22`、`0x19`、`0x3E`
 
 [mcd-diag-rs](vag/MCD_DIAG_RS.md) 提供 PC preprocessing/flattening pattern；不得 redistribute proprietary MCD/ODIS data。[opendbc](vag/OPENDBC.md) 只作 passive CAN reference；[MQB-sniffer](vag/MQB_SNIFFER.md) 只作 research methodology；[vehicle_coverage](vag/VEHICLE_COVERAGE.md) 只確認 Kamiq 2024 signal-description coverage；[PyVCDS](vag/PYVCDS.md) 是 historical workflow。`VEHICLE_CONFIRMED = none`。
 
+[Telltale](vag/TELLTALE.md) 僅作 diagnostic/data-quality `REFERENCE_PATTERN`、research-method 與 data-pipeline evidence：一次 timeout／`NO DATA` 不代表 capability `Unsupported`；multi-responder disagreement 在明確 source/route arbitration authority 出現前維持 ambiguity；malformed／unsupported decode 或 scaling fails closed，不輸出看似正常的 normalized value。Diagnostic provenance trace 是後續 bounded validation/tooling direction，不是 firmware 無界記錄要求；discovery/simulation 不擴張 live TX authority，既有 `ReadOnlyGuard` 仍為準。GPL-3.0 source 不直接重用。
+
 ### Current Kamiq validation backlog
 
 以下全部是 `Pending / hypothesis`，不是 Hardware/Vehicle PASS：
