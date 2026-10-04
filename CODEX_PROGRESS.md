@@ -1,6 +1,6 @@
 # Project State Summary
 
-Reviewed: 2026-10-04
+Reviewed: 2026-10-05
 
 This file is the human-readable historical project-state summary. It is not the active work queue; current unfinished work is kept only in `TASKS.md`, and current validation authority is `VALIDATION.md`.
 
@@ -16,9 +16,10 @@ This file is the human-readable historical project-state summary. It is not the 
 - Phase 5A normalized VehicleData sample/value semantics are implemented at `68864ba`; they provide an opaque signal ID, normalized metadata, numeric/boolean/bounded text values, copy-safe storage, explicit availability/quality states and a 64-bit monotonic timestamp without introducing a registry, Store/Cache or Scheduler.
 - Phase 5B bounded VehicleData Store/Cache is implemented at `d7b8552`; it provides fixed-capacity latest-state storage keyed by opaque signal ID, timestamp-ordered whole-sample replacement and copy-based lookup/snapshot without eviction, automatic aging, registry or Scheduler ownership.
 - Phase 5C cooperative Scheduler core is implemented at `96203ffe5e66f0a4abf8c0c19b6fd82ffe681159`: fixed-capacity opaque jobs, injected Clock, Startup/Periodic/OnDemand policies, registration-order dispatch, single active job and external completion. Periodic cadence is deadline-anchored and skips missed periods. This kernel does not own callbacks, protocol execution, Store updates or profile/application integration.
-- Other UDS services, session/DTC/TesterPresent behavior, VAG routing, VehicleData eviction/TTL/automatic aging, Scheduler application integration, signal/capability registry and application-facing diagnostic TX remain unstarted.
-- Phase 6a profile identity / Active Profile selection boundary is implemented at `e237aa17700d64b07917fda8e30d72076211bfe8`. Manual selection admits only identities from a fixed set; unresolved states clear the active identity. The single Kamiq 2024 facelift descriptor (`Kamiq_NW4`) remains Pending and does not establish capability or vehicle support. Automatic resolver and Phase 6b/6c remain future work.
+- Other UDS services, session/DTC/TesterPresent behavior, VAG routing, VehicleData eviction/TTL/automatic aging, Scheduler application integration and application-facing diagnostic TX remain unstarted.
+- Phase 6a profile identity / Active Profile selection boundary is implemented at `e237aa17700d64b07917fda8e30d72076211bfe8`. Manual selection admits only identities from a fixed set; unresolved states clear the active identity. The single Kamiq 2024 facelift descriptor (`Kamiq_NW4`) remains Pending and does not establish capability or vehicle support. Automatic resolver and Phase 6c remain future work.
 - The project remains VAG-first, with Škoda Kamiq as the primary vehicle validation target. Portability order remains Kamiq → T-Roc → RAV4 → Wish.
+- Phase 6b capability-support / normalized signal registry is implemented at `453efa72740231e35fe3523c90bd5a2b6dbc0e8c`. Fixed immutable descriptors reuse existing SignalId/Unit; support state is distinct from runtime availability. Kamiq_NW4's four candidates remain Pending; lookup never learns support from read failures or changes samples/Store. Mapping, polling, source arbitration and Phase 6c remain future work.
 
 ## Long-term decisions
 
@@ -39,3 +40,4 @@ This file is the human-readable historical project-state summary. It is not the 
 - Phase 5B host tests passed at `d7b8552`; no ESP32 compile was re-run because the Generic Core Store/Cache header did not change ESP32-facing source participation or the platform boundary. This does not establish eviction, automatic aging, Scheduler or physical evidence.
 - Phase 5C local host compile/tests passed at `96203ff` with clang 22.1.8, including all existing diagnostic and VehicleData regressions. ESP32 compile was not re-run because the scheduler header does not change ESP32-facing source participation/platform boundary. Bench, Hardware and Vehicle remain Pending.
 - Phase 6a local host compile/tests passed at `e237aa1` with clang 22.1.8, including all existing regressions. ESP32 compile was not re-run because profile identity/selection headers do not change ESP32-facing source participation/platform boundary. Bench, Hardware and Vehicle remain Pending.
+- Phase 6b local host compile/tests passed at `453efa7` with clang 22.1.8, including all existing regressions. ESP32 compile was not re-run because registry headers do not change ESP32-facing source participation/platform boundary. Bench, Hardware and Vehicle remain Pending.

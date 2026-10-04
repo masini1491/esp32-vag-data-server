@@ -41,7 +41,18 @@ Resolver 的可能 evidence 包含 VIN、ECU identification、firmware fingerpri
 
 ## Current VAG target
 
-Phase 6a 的 host-testable implementation 位於 `src/profiles/active_vehicle_profile.h` 與 `src/vag/profile_set.h`。前者僅擁有 opaque identity、固定 admitted identities 與 manual selection；`Unknown`、`Ambiguous`、`ManualSelectionRequired` 不暴露 active identity，只有 `Selected` 暴露一個 admitted identity。後者只有 Pending 的 Kamiq 2024 facelift target reference `Kamiq_NW4`；選中它不建立 capability、VehicleData value 或實車支援。Automatic resolver、routing/mapping 與 capability registry 尚未實作。
+Phase 6b 的 `src/profiles/signal_registry.h` 擁有 fixed immutable normalized metadata lookup。`CapabilitySupport`（Supported／Unsupported／Pending／Unknown）與 sample `VehicleAvailability` 是獨立型別；不含 transient Unavailable，不接受 runtime failure 作 support mutation。未知 signal 回傳 not-found，不推導 Unsupported。`src/vag/kamiq_nw4_capabilities.h` 將現有 Kamiq identity 關聯到下列 Numeric candidate metadata，全部 Pending；selection 不提升 support，lookup 不產生 sample 或更新 Store。
+
+| Existing normalized SignalId | Expected value type | Unit | Support |
+|---|---|---|---|
+| `vehicle.speed` | Numeric | `km/h` | Pending |
+| `vehicle.rpm` | Numeric | `rpm` | Pending |
+| `vehicle.coolantTemp` | Numeric | `degC` | Pending |
+| `vehicle.voltage` | Numeric | `V` | Pending |
+
+這些 unit 是 normalized metadata，不是 raw encoding/scaling；沒有 ECU/source routing、arbitration、polling 或 diagnostic execution 定義。
+
+Phase 6a 的 host-testable implementation 位於 `src/profiles/active_vehicle_profile.h` 與 `src/vag/profile_set.h`。前者僅擁有 opaque identity、固定 admitted identities 與 manual selection；`Unknown`、`Ambiguous`、`ManualSelectionRequired` 不暴露 active identity，只有 `Selected` 暴露一個 admitted identity。後者只有 Pending 的 Kamiq 2024 facelift target reference `Kamiq_NW4`；選中它不建立 capability、VehicleData value 或實車支援。Automatic resolver、routing/mapping 尚未實作。
 
 ```text
 Generic ISO-TP / Generic UDS

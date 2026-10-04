@@ -10,11 +10,11 @@
 - Phase 3: Generic OBD-II read-only（Phase 3A `ReadOnlyGuard` safety gate 與 Phase 3B host service core PASS；DTC / broader service semantics 尚未開始）
 - Phase 4: Generic UDS read-only（Phase 4A `ReadOnlyGuard` `0x22` safety extension 與 Phase 4B host service core PASS；其他 UDS service semantics 尚未開始）
 - Phase 5A: normalized VehicleData sample/value semantics（PASS；僅 single-sample representation；Store/Cache 另見 Phase 5B）
-- Phase 5B: bounded VehicleData Store / Cache（PASS；eviction/TTL/automatic aging 與 registry 尚未開始）
+- Phase 5B: bounded VehicleData Store / Cache（PASS；eviction/TTL/automatic aging 尚未開始；registry 另見 Phase 6b）
 - Phase 5C: cooperative Scheduler core（PASS；Startup / Periodic / OnDemand，single active job；profile/application integration 尚未開始）
 - Phase 6: VAG Brand Layer + Kamiq Profile
 - Phase 6a: Profile identity + Active Profile manual selection boundary（host PASS；單一 Pending Kamiq 2024 target identity；automatic resolver、Brand runtime routing/mapping 尚未開始）
-- Phase 6b: Capability registry + normalized signal registry（future implementation planning）
+- Phase 6b: Capability registry + normalized signal registry（host PASS；fixed immutable metadata；Kamiq_NW4 四個 candidate 均 Pending；runtime support learning/mapping 尚未實作）
 - Phase 6c: Deep Diagnostic on-demand path（future implementation planning）
 - Phase 7: BLE
 - Phase 8: Web
@@ -66,4 +66,6 @@ Phase 5C 僅涵蓋 injected 64-bit Clock 的 cooperative timing/lifecycle kernel
 
 Phase 2 v1 implementation 是 ISO-TP over Classic CAN；future non-CAN transports 僅為 architecture boundaries，不新增 K-Line implementation phase，也不改變 Kamiq → T-Roc → RAV4 → Wish validation sequence。
 
-Phase 6a 已建立 brand-independent opaque profile identity、四種 selection states 與 fixed admitted identity set；VAG Profile Set 只保存 Pending 的 `Kamiq_NW4` target identity。Manual selection 不建立 capability 或 VehicleData values；Phase 6b／6c、automatic detection、routes/DID/scaling/passive CAN mappings 與實車驗證仍待後續工作。ESP32 compile 未重跑，因 platform boundary 與 ESP32-facing source participation 未改變；current host evidence 見 `VALIDATION.md`。
+Phase 6b 僅建立 separate capability-support state 與 fixed normalized signal metadata lookup；重用現有 SignalId/Unit，Kamiq_NW4 的 speed/rpm/coolantTemp/voltage 都是 Pending candidate，不宣稱實車 support。Registry 不擁有 sample availability、Store、mapping、polling、Scheduler 或 diagnostic execution。ESP32 compile 未重跑，因 platform boundary／ESP32-facing source participation 未改變；current host evidence 見 `VALIDATION.md`。
+
+Phase 6a 已建立 brand-independent opaque profile identity、四種 selection states 與 fixed admitted identity set；VAG Profile Set 只保存 Pending 的 `Kamiq_NW4` target identity。Manual selection 不建立 capability 或 VehicleData values；Phase 6c、automatic detection、routes/DID/scaling/passive CAN mappings 與實車驗證仍待後續工作。ESP32 compile 未重跑，因 platform boundary 與 ESP32-facing source participation 未改變；current host evidence 見 `VALIDATION.md`。
