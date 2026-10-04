@@ -12,6 +12,7 @@
 #include "vehicle_data_store_tests.h"
 #include "scheduler_tests.h"
 #include "profile_selection_tests.h"
+#include "signal_registry_tests.h"
 
 namespace {
 
@@ -156,5 +157,6 @@ int main() {
   runVehicleDataStoreTests();
   runSchedulerTests();
   runProfileSelectionTests();
+  runSignalRegistryTests();
   return 0;
 }
