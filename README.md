@@ -1,6 +1,6 @@
 # ESP32 VAG Data Server
 
-**專案狀態：** Architecture Freeze v0.4 完成／Phase 1 software foundation PASS／Phase 2A host core PASS／Phase 3A ReadOnlyGuard PASS／Phase 3B OBD host core PASS／Phase 4A UDS ReadOnlyGuard PASS／Phase 4B UDS host core PASS／Phase 5A sample semantics PASS／Phase 5B bounded Store/Cache PASS／Phase 5C cooperative Scheduler core PASS
+**專案狀態：** Architecture Freeze v0.4 完成／Phase 1 software foundation PASS／Phase 2A host core PASS／Phase 3A ReadOnlyGuard PASS／Phase 3B OBD host core PASS／Phase 4A UDS ReadOnlyGuard PASS／Phase 4B UDS host core PASS／Phase 5A sample semantics PASS／Phase 5B bounded Store/Cache PASS／Phase 5C cooperative Scheduler core PASS／Phase 6a profile identity/selection host PASS
 
 ## 專案目的
 
@@ -36,6 +36,8 @@ v1 concrete path 維持 ESP32-S3 + Classic CAN/TWAI + ISO-TP + OBD-II/UDS + VAG�
 - Phase 5C cooperative Scheduler core：fixed-capacity opaque jobs、injected Clock、Startup/Periodic/OnDemand、stable due order、single active job，以及 deterministic host tests（implementation `96203ff`）。Job execution 與 completion 由 caller 驅動。
 
 目前 Bench、Hardware 與 Vehicle validation 均為 Pending。
+
+Phase 6a profile identity／Active Profile manual selection boundary 已完成並通過 host tests（implementation `e237aa1`）：固定 admitted identity set、四種 selection states，與單一 Pending 的 Kamiq 2024 facelift reference `Kamiq_NW4`。這僅建立 identity/selection ownership；automatic resolver、capability registry 與 VAG runtime routing/mapping 尚未實作。
 
 ## 預計技術棧
 
@@ -152,7 +154,7 @@ Realtime clients 預計優先讀取 `VehicleData Cache`，不因為瀏覽器 ref
 
 已完成 Phase 1 software foundation、Phase 2A host core、Phase 3A `ReadOnlyGuard` safety gate、Phase 3B Generic OBD-II read-only host service、Phase 4A UDS `ReadOnlyGuard` safety extension、Phase 4B Generic UDS host service、Phase 5A normalized VehicleData sample/value semantics，Phase 5B bounded VehicleData Store/Cache，以及 Phase 5C cooperative Scheduler core：Generic CAN model、Board / HardwareConfig / CAN HAL abstraction、deterministic Mock CAN / Fake Clock、ESP32-S3 TWAI Classic CAN backend、host CI regression tests、Classic CAN ISO-TP / `DiagnosticTransport` core、semantic OBD allowlist／host semantics、UDS `0x22` guard、one-request-at-a-time 的 raw DID data / negative NRC / bounded response-pending semantics、brand-independent opaque signal sample/value representation，以及 fixed-capacity latest-state sample ownership 與 externally-driven Startup/Periodic/OnDemand scheduling。Phase 2A 為 `43a550de`；Phase 3A 為 `5eefb44`；Phase 3B 為 `5e038fc`；Phase 4A 為 `4b86093`；Phase 4B 為 `59a10b0`；Phase 5A 為 `68864ba`；Phase 5B 為 `d7b8552`；Phase 5C 為 `96203ff`；以上已有 local host compile/test PASS，Phase 2A GitHub Actions run `35688710299` PASS。
 
-尚未開始或尚未完成：其他 Generic UDS services、session lifecycle、DTC modes、TesterPresent、VehicleData Store eviction/TTL/automatic aging、Scheduler application integration / RealtimeTriggered / callbacks / priority / retry、signal/capability registry、VAG DID/scaling、VAG Brand Layer / Kamiq profile implementation、application-facing diagnostic TX、BLE、Web、passive CAN decoding，以及 real hardware / vehicle validation。Phase 2A / 3A / 3B / 4A / 4B / 5A / 5B / 5C 未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；既有 Phase 1 ESP32 compile evidence 維持原 scope。Bench、Hardware、Vehicle 仍為 Pending。
+尚未開始或尚未完成：其他 Generic UDS services、session lifecycle、DTC modes、TesterPresent、VehicleData Store eviction/TTL/automatic aging、Scheduler application integration / RealtimeTriggered / callbacks / priority / retry、signal/capability registry、VAG DID/scaling、VAG runtime routing / Kamiq profile mappings / automatic resolver、application-facing diagnostic TX、BLE、Web、passive CAN decoding，以及 real hardware / vehicle validation。Phase 2A / 3A / 3B / 4A / 4B / 5A / 5B / 5C / 6a 未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；既有 Phase 1 ESP32 compile evidence 維持原 scope。Bench、Hardware、Vehicle 仍為 Pending。
 
 研究與開發規劃詳見 [Development roadmap](docs/DEVELOPMENT.md)；upstream reference index 見 [REFERENCES.md](docs/REFERENCES.md)。
 

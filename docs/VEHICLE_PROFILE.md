@@ -41,6 +41,8 @@ Resolver 的可能 evidence 包含 VIN、ECU identification、firmware fingerpri
 
 ## Current VAG target
 
+Phase 6a 的 host-testable implementation 位於 `src/profiles/active_vehicle_profile.h` 與 `src/vag/profile_set.h`。前者僅擁有 opaque identity、固定 admitted identities 與 manual selection；`Unknown`、`Ambiguous`、`ManualSelectionRequired` 不暴露 active identity，只有 `Selected` 暴露一個 admitted identity。後者只有 Pending 的 Kamiq 2024 facelift target reference `Kamiq_NW4`；選中它不建立 capability、VehicleData value 或實車支援。Automatic resolver、routing/mapping 與 capability registry 尚未實作。
+
 ```text
 Generic ISO-TP / Generic UDS
         ↓

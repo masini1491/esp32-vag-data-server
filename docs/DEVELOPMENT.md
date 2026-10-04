@@ -13,7 +13,7 @@
 - Phase 5B: bounded VehicleData Store / Cache（PASS；eviction/TTL/automatic aging 與 registry 尚未開始）
 - Phase 5C: cooperative Scheduler core（PASS；Startup / Periodic / OnDemand，single active job；profile/application integration 尚未開始）
 - Phase 6: VAG Brand Layer + Kamiq Profile
-- Phase 6a: Brand extension boundary + Brand Profile Set / Active Profile（future implementation planning）
+- Phase 6a: Profile identity + Active Profile manual selection boundary（host PASS；單一 Pending Kamiq 2024 target identity；automatic resolver、Brand runtime routing/mapping 尚未開始）
 - Phase 6b: Capability registry + normalized signal registry（future implementation planning）
 - Phase 6c: Deep Diagnostic on-demand path（future implementation planning）
 - Phase 7: BLE
@@ -65,3 +65,5 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 Phase 5C 僅涵蓋 injected 64-bit Clock 的 cooperative timing/lifecycle kernel；Periodic 維持 absolute cadence 並跳過 missed periods，OnDemand pending/active request 合併，完成前只允許一個 active job。RealtimeTriggered、priority、callback/executor、automatic retry/backoff、Store aging/update、profile polling、FreeRTOS binding 與 application integration 尚未開始。
 
 Phase 2 v1 implementation 是 ISO-TP over Classic CAN；future non-CAN transports 僅為 architecture boundaries，不新增 K-Line implementation phase，也不改變 Kamiq → T-Roc → RAV4 → Wish validation sequence。
+
+Phase 6a 已建立 brand-independent opaque profile identity、四種 selection states 與 fixed admitted identity set；VAG Profile Set 只保存 Pending 的 `Kamiq_NW4` target identity。Manual selection 不建立 capability 或 VehicleData values；Phase 6b／6c、automatic detection、routes/DID/scaling/passive CAN mappings 與實車驗證仍待後續工作。ESP32 compile 未重跑，因 platform boundary 與 ESP32-facing source participation 未改變；current host evidence 見 `VALIDATION.md`。
