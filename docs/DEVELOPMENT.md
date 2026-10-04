@@ -15,7 +15,7 @@
 - Phase 6: VAG Brand Layer + Kamiq Profile
 - Phase 6a: Profile identity + Active Profile manual selection boundary（host PASS；單一 Pending Kamiq 2024 target identity；automatic resolver、Brand runtime routing/mapping 尚未開始）
 - Phase 6b: Capability registry + normalized signal registry（host PASS；fixed immutable metadata；Kamiq_NW4 四個 candidate 均 Pending；runtime support learning/mapping 尚未實作）
-- Phase 6c: Deep Diagnostic on-demand path（future implementation planning）
+- Phase 6c: Deep Diagnostic on-demand path（Blocked；等待 EV-1 所述具體 Kamiq profile-owned route/DID/decode evidence；SOP 本身不解鎖 implementation）
 - Phase 7: BLE
 - Phase 8: Web
 - Phase 9: Passive CAN
@@ -23,6 +23,8 @@
 - Phase 11: **Future / Pending** — T-Roc VAG portability validation
 - Phase 12: **Future / Pending** — RAV4 cross-brand architecture validation
 - Phase 13: **Future / Pending** — Wish Toyota cross-generation validation
+
+EV-1 [Kamiq Read-only Evidence Acquisition Protocol](KAMIQ_READ_ONLY_EVIDENCE.md) is a docs-only research procedure. It acquires no vehicle evidence and does not change Bench / Hardware / Vehicle Pending status.
 
 ## Validation sequence
 

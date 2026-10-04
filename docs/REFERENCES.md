@@ -55,6 +55,17 @@ Read only:
 
 Expand into [references/vag/](references/vag/) only for the specific evidence needed.
 
+### Kamiq read-only evidence acquisition — EV-1
+
+Read only:
+
+- [KAMIQ.md](references/portability/vag/KAMIQ.md)
+- [MQB_SNIFFER.md](references/vag/MQB_SNIFFER.md)
+- [TELLTALE.md](references/vag/TELLTALE.md)
+- [Kamiq Read-only Evidence Acquisition Protocol](KAMIQ_READ_ONLY_EVIDENCE.md)
+
+The protocol defines a future acquisition method; it contains no physical observation or PASS evidence.
+
 ### Phase 2 ISO-TP
 
 Read only:
