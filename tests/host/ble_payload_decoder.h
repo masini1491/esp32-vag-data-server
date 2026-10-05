@@ -105,6 +105,7 @@ bool decodeEnum(std::uint8_t raw, std::uint8_t maximum, Enum& value) {
 inline bool decodeBlePayload(const std::uint8_t* bytes, std::size_t length,
                              DecodedBlePayload& decoded) {
   if (bytes == nullptr || length < 2) return false;
+  decoded = DecodedBlePayload{};
   BlePayloadReader reader(bytes, length);
   std::uint8_t version = 0, rawType = 0;
   if (!reader.byte(version) || version != 1 || !reader.byte(rawType) ||

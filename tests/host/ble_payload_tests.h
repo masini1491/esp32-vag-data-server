@@ -74,6 +74,29 @@ inline void testBleCapabilityRecords() {
     EXPECT_TRUE(decoded.capability.unit == descriptors[index].unit);
     EXPECT_TRUE(decoded.capability.support == CapabilitySupport::Pending);
   }
+
+  const std::array<NormalizedSignalDescriptor, 4> supportStates{{
+      {NormalizedVehicleSample::SignalId("supported"), VehicleValueType::Numeric,
+       NormalizedVehicleSample::Unit("unit"), CapabilitySupport::Supported},
+      {NormalizedVehicleSample::SignalId("unsupported"), VehicleValueType::Boolean,
+       NormalizedVehicleSample::Unit("bool"), CapabilitySupport::Unsupported},
+      {NormalizedVehicleSample::SignalId("pending"), VehicleValueType::Text,
+       NormalizedVehicleSample::Unit("text"), CapabilitySupport::Pending},
+      {NormalizedVehicleSample::SignalId("unknown"), VehicleValueType::Numeric,
+       NormalizedVehicleSample::Unit("unit"), CapabilitySupport::Unknown},
+  }};
+  for (std::size_t index = 0; index < supportStates.size(); ++index) {
+    const auto size = encodePayload(
+        [&](std::uint8_t* out, std::size_t cap) {
+          return encodeBleCapabilityRecord(supportStates[index], index, out, cap);
+        },
+        bytes);
+    DecodedBlePayload decoded;
+    EXPECT_TRUE(decodeBlePayload(bytes.data(), size, decoded));
+    EXPECT_TRUE(decoded.capability.support == supportStates[index].support);
+    EXPECT_TRUE(decoded.capability.expectedValueType ==
+                supportStates[index].expectedValueType);
+  }
 }
 
 inline void testBleSampleRecordsAndTimestampRoundTrip() {
