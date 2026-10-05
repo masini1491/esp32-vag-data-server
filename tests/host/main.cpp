@@ -16,6 +16,7 @@
 #include "vehicle_data_read_model_tests.h"
 #include "ble_payload_tests.h"
 #include "web_vehicle_data_response_tests.h"
+#include "logger_export_tests.h"
 
 namespace {
 
@@ -164,5 +165,6 @@ int main() {
   runVehicleDataReadModelTests();
   runBlePayloadTests();
   runWebVehicleDataResponseTests();
+  runLoggerExportTests();
   return 0;
 }
