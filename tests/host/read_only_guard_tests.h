@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <initializer_list>
+#include <type_traits>
 
 #include "../../src/protocol/read_only_guard.h"
 #include "test_helpers.h"
@@ -202,12 +203,37 @@ inline void testReadOnlyGuardDelegatesPollAndReceive() {
   EXPECT_TRUE(length == 0);
 }
 
+inline void testReadOnlyGuardUdsDtcStatusMask() {
+  static_assert(std::is_same_v<decltype(&ReadOnlyGuard::startUdsReportDtcByStatusMask),
+                              ReadOnlyResult (ReadOnlyGuard::*)(std::uint8_t)>);
+  RecordingDiagnosticTransport transport;
+  ReadOnlyGuard guard(transport);
+  for (const std::uint8_t mask : {0x00, 0xA5, 0xFF}) {
+    const auto result = guard.startUdsReportDtcByStatusMask(mask);
+    EXPECT_TRUE(result.status == ReadOnlyStatus::Forwarded);
+    EXPECT_TRUE(result.transportStatus == TransportStatus::Complete);
+    EXPECT_TRUE(transport.lastLength == 3);
+    EXPECT_TRUE(transport.lastPayload[0] == 0x19);
+    EXPECT_TRUE(transport.lastPayload[1] == 0x02);
+    EXPECT_TRUE(transport.lastPayload[2] == mask);
+  }
+  for (const auto failure : {TransportStatus::Busy, TransportStatus::TxBusy,
+                             TransportStatus::TxFailed, TransportStatus::BusOff,
+                             TransportStatus::NotInitialized}) {
+    transport.sendStatus = failure;
+    const auto result = guard.startUdsReportDtcByStatusMask(0xFF);
+    EXPECT_TRUE(result.status == ReadOnlyStatus::Forwarded);
+    EXPECT_TRUE(result.transportStatus == failure);
+  }
+}
+
 inline void runReadOnlyGuardTests() {
   testReadOnlyGuardAllowedRequests();
   testReadOnlyGuardDeniesAndRejectsMalformedRequests();
   testReadOnlyGuardStoredDtcRequestIsSemantic();
   testReadOnlyGuardPreservesTransportStatus();
   testReadOnlyGuardUdsSingleDid();
+  testReadOnlyGuardUdsDtcStatusMask();
   testReadOnlyGuardDelegatesPollAndReceive();
 }
 

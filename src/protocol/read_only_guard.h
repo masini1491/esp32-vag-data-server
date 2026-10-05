@@ -62,6 +62,12 @@ class ReadOnlyGuard {
             transport_.startSend(payload, sizeof(payload))};
   }
 
+  ReadOnlyResult startUdsReportDtcByStatusMask(std::uint8_t statusMask) {
+    const std::uint8_t payload[] = {kUdsReadDtcInformation, 0x02, statusMask};
+    return {ReadOnlyStatus::Forwarded,
+            transport_.startSend(payload, sizeof(payload))};
+  }
+
   TransportStatus poll() { return transport_.poll(); }
 
   TransportStatus receive(std::uint8_t* payload, std::size_t capacity,
@@ -74,6 +80,7 @@ class ReadOnlyGuard {
   static constexpr std::uint8_t kModeStoredDtcRead = 0x03;
   static constexpr std::uint8_t kModeVehicleInformation = 0x09;
   static constexpr std::uint8_t kUdsReadDataByIdentifier = 0x22;
+  static constexpr std::uint8_t kUdsReadDtcInformation = 0x19;
 
   DiagnosticTransport& transport_;
 };
