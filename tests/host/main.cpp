@@ -14,6 +14,7 @@
 #include "profile_selection_tests.h"
 #include "signal_registry_tests.h"
 #include "vehicle_data_read_model_tests.h"
+#include "ble_payload_tests.h"
 #include "web_vehicle_data_response_tests.h"
 
 namespace {
@@ -161,6 +162,7 @@ int main() {
   runProfileSelectionTests();
   runSignalRegistryTests();
   runVehicleDataReadModelTests();
+  runBlePayloadTests();
   runWebVehicleDataResponseTests();
   return 0;
 }
