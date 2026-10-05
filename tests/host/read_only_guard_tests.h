@@ -50,6 +50,16 @@ class RecordingDiagnosticTransport final : public DiagnosticTransport {
     receiveStatus = TransportStatus::Complete;
   }
 
+  void setResponse(const std::uint8_t* bytes, std::size_t length) {
+    responseLength = length;
+    if (length > response.size()) {
+      receiveStatus = TransportStatus::Overflow;
+      return;
+    }
+    std::copy_n(bytes, length, response.begin());
+    receiveStatus = TransportStatus::Complete;
+  }
+
   TransportStatus sendStatus = TransportStatus::Complete;
   TransportStatus pollStatus = TransportStatus::Idle;
   TransportStatus receiveStatus = TransportStatus::NoData;
@@ -106,6 +116,18 @@ inline void testReadOnlyGuardDeniesAndRejectsMalformedRequests() {
   const auto multiplePids = guard.startObdSinglePid({0x01, &pid, 2});
   EXPECT_TRUE(multiplePids.status == ReadOnlyStatus::InvalidRequest);
   EXPECT_TRUE(transport.sendCount == 0);
+}
+
+inline void testReadOnlyGuardStoredDtcRequestIsSemantic() {
+  RecordingDiagnosticTransport transport;
+  ReadOnlyGuard guard(transport);
+
+  const auto result = guard.startObdStoredDtcRead();
+  EXPECT_TRUE(result.status == ReadOnlyStatus::Forwarded);
+  EXPECT_TRUE(result.transportStatus == TransportStatus::Complete);
+  EXPECT_TRUE(transport.sendCount == 1);
+  EXPECT_TRUE(transport.lastLength == 1);
+  EXPECT_TRUE(transport.lastPayload[0] == 0x03);
 }
 
 inline void testReadOnlyGuardPreservesTransportStatus() {
@@ -183,6 +205,7 @@ inline void testReadOnlyGuardDelegatesPollAndReceive() {
 inline void runReadOnlyGuardTests() {
   testReadOnlyGuardAllowedRequests();
   testReadOnlyGuardDeniesAndRejectsMalformedRequests();
+  testReadOnlyGuardStoredDtcRequestIsSemantic();
   testReadOnlyGuardPreservesTransportStatus();
   testReadOnlyGuardUdsSingleDid();
   testReadOnlyGuardDelegatesPollAndReceive();

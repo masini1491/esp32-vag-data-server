@@ -46,6 +46,12 @@ class ReadOnlyGuard {
             transport_.startSend(payload, sizeof(payload))};
   }
 
+  ReadOnlyResult startObdStoredDtcRead() {
+    const std::uint8_t payload[] = {kModeStoredDtcRead};
+    return {ReadOnlyStatus::Forwarded,
+            transport_.startSend(payload, sizeof(payload))};
+  }
+
   ReadOnlyResult startUdsReadDataByIdentifier(std::uint16_t did) {
     const std::uint8_t payload[] = {
         kUdsReadDataByIdentifier,
@@ -65,6 +71,7 @@ class ReadOnlyGuard {
 
  private:
   static constexpr std::uint8_t kModeCurrentData = 0x01;
+  static constexpr std::uint8_t kModeStoredDtcRead = 0x03;
   static constexpr std::uint8_t kModeVehicleInformation = 0x09;
   static constexpr std::uint8_t kUdsReadDataByIdentifier = 0x22;
 

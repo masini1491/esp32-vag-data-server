@@ -155,12 +155,109 @@ inline void testObdVinValidation() {
   EXPECT_TRUE(service.vin() == expected);
 }
 
+inline void testObdStoredDtcResponsesAndPadding() {
+  RecordingDiagnosticTransport transport;
+  FakeClock clock;
+  ReadOnlyGuard guard(transport);
+  ObdService service(guard, clock, {50});
+
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
+  EXPECT_TRUE(transport.lastLength == 1 && transport.lastPayload[0] == 0x03);
+  EXPECT_TRUE(service.requestCurrentData(0x0C) == ObdServiceStatus::Busy);
+  EXPECT_TRUE(transport.sendCount == 1);
+  transport.setResponse({0x43});
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::ResponseReady);
+  EXPECT_TRUE(service.storedDtcCount() == 0);
+
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
+  transport.setResponse({0x43, 0x01, 0x23});
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::ResponseReady);
+  EXPECT_TRUE(service.storedDtcCount() == 1);
+  EXPECT_TRUE(service.storedDtcs()[0].firstByte == 0x01);
+  EXPECT_TRUE(service.storedDtcs()[0].secondByte == 0x23);
+
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
+  transport.setResponse({0x43, 0x01, 0x23, 0xC4, 0x56});
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::ResponseReady);
+  EXPECT_TRUE(service.storedDtcCount() == 2);
+  EXPECT_TRUE(service.storedDtcs()[0].firstByte == 0x01);
+  EXPECT_TRUE(service.storedDtcs()[0].secondByte == 0x23);
+  EXPECT_TRUE(service.storedDtcs()[1].firstByte == 0xC4);
+  EXPECT_TRUE(service.storedDtcs()[1].secondByte == 0x56);
+
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
+  transport.setResponse({0x43, 0x00, 0x00, 0x01, 0x23, 0x00, 0x00});
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::ResponseReady);
+  EXPECT_TRUE(service.storedDtcCount() == 1);
+  EXPECT_TRUE(service.storedDtcs()[0].firstByte == 0x01);
+  EXPECT_TRUE(service.storedDtcs()[0].secondByte == 0x23);
+
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
+  transport.setResponse({0x43, 0x00, 0x00, 0x00, 0x00});
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::ResponseReady);
+  EXPECT_TRUE(service.storedDtcCount() == 0);
+}
+
+inline void testObdStoredDtcRejectsUnexpectedMalformedAndOverflow() {
+  RecordingDiagnosticTransport transport;
+  FakeClock clock;
+  ReadOnlyGuard guard(transport);
+  ObdService service(guard, clock, {50});
+
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
+  transport.setResponse({0x41, 0x03, 0x01});
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::UnexpectedResponse);
+  EXPECT_TRUE(service.isRequestActive());
+  transport.setResponse({0x43, 0x01});
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::InvalidResponse);
+  EXPECT_TRUE(!service.isRequestActive());
+  EXPECT_TRUE(service.storedDtcCount() == 0);
+
+  std::array<std::uint8_t, 1 + 2 * (ObdService::kMaxStoredDtcRecords + 1)>
+      tooManyRecords{};
+  tooManyRecords[0] = 0x43;
+  for (std::size_t index = 0; index < ObdService::kMaxStoredDtcRecords + 1;
+       ++index) {
+    tooManyRecords[1 + index * 2] = 0x01;
+    tooManyRecords[2 + index * 2] = static_cast<std::uint8_t>(index + 1);
+  }
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
+  transport.setResponse(tooManyRecords.data(), tooManyRecords.size());
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::InvalidResponse);
+  EXPECT_TRUE(!service.isRequestActive());
+  EXPECT_TRUE(service.storedDtcCount() == 0);
+}
+
+inline void testObdStoredDtcTimeoutAndTransportFailures() {
+  RecordingDiagnosticTransport transport;
+  FakeClock clock;
+  ReadOnlyGuard guard(transport);
+  ObdService service(guard, clock, {50});
+
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
+  clock.advanceMs(50);
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::Timeout);
+
+  transport.sendStatus = TransportStatus::TxFailed;
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::TransportFailure);
+  EXPECT_TRUE(service.lastTransportStatus() == TransportStatus::TxFailed);
+
+  transport.sendStatus = TransportStatus::Complete;
+  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
+  transport.pollStatus = TransportStatus::BusOff;
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::TransportFailure);
+  EXPECT_TRUE(service.lastTransportStatus() == TransportStatus::BusOff);
+}
+
 inline void runObdServiceTests() {
   testObdCurrentDataAndResponseMatching();
   testObdBusyTimeoutAndTransportFailures();
   testObdWaitsForTransportCompletionBeforeTimeout();
   testObdSupportedPidBlocks();
   testObdVinValidation();
+  testObdStoredDtcResponsesAndPadding();
+  testObdStoredDtcRejectsUnexpectedMalformedAndOverflow();
+  testObdStoredDtcTimeoutAndTransportFailures();
 }
 
 }  // namespace vag_data::test

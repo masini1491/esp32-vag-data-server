@@ -27,10 +27,16 @@ struct ObdServiceConfig {
   std::uint32_t responseTimeoutMs{1000};
 };
 
+struct ObdDtcRecord {
+  std::uint8_t firstByte{0};
+  std::uint8_t secondByte{0};
+};
+
 class ObdService {
  public:
   static constexpr std::size_t kMaxRawDataLength = 64;
   static constexpr std::size_t kVinLength = 17;
+  static constexpr std::size_t kMaxStoredDtcRecords = 16;
 
   ObdService(ReadOnlyGuard& guard, Clock& clock,
              const ObdServiceConfig& config = {})
@@ -50,6 +56,13 @@ class ObdService {
   ObdServiceStatus requestVin() {
     const std::uint8_t pid = kVinPid;
     return beginRequest(kModeVehicleInformation, pid, RequestKind::Vin);
+  }
+
+  ObdServiceStatus requestStoredDtcs() {
+    if (!prepareRequest(RequestKind::StoredDtcs)) {
+      return status_;
+    }
+    return beginTransport(guard_.startObdStoredDtcRead());
   }
 
   ObdServiceStatus poll() {
@@ -99,6 +112,10 @@ class ObdService {
   }
   std::uint32_t supportedPidBitmap() const { return supportedPidBitmap_; }
   const std::array<char, kVinLength>& vin() const { return vin_; }
+  std::size_t storedDtcCount() const { return storedDtcCount_; }
+  const std::array<ObdDtcRecord, kMaxStoredDtcRecords>& storedDtcs() const {
+    return storedDtcs_;
+  }
 
  private:
   enum class State : std::uint8_t {
@@ -112,6 +129,7 @@ class ObdService {
     CurrentData,
     SupportedPids,
     Vin,
+    StoredDtcs,
   };
 
   static constexpr std::uint8_t kModeCurrentData = 0x01;
@@ -124,17 +142,30 @@ class ObdService {
 
   ObdServiceStatus beginRequest(std::uint8_t mode, std::uint8_t pid,
                                 RequestKind kind) {
+    if (!prepareRequest(kind)) {
+      return status_;
+    }
+    requestedPid_ = pid;
+    return beginTransport(
+        guard_.startObdSinglePid({mode, &requestedPid_, 1}));
+  }
+
+  bool prepareRequest(RequestKind kind) {
     if (isRequestActive()) {
-      return setStatus(ObdServiceStatus::Busy);
+      setStatus(ObdServiceStatus::Busy);
+      return false;
     }
     if (config_.responseTimeoutMs == 0) {
-      return finishWithoutTransport(ObdServiceStatus::InvalidRequest);
+      finishWithoutTransport(ObdServiceStatus::InvalidRequest);
+      return false;
     }
 
     clearResult();
     requestKind_ = kind;
-    requestedPid_ = pid;
-    const auto guardResult = guard_.startObdSinglePid({mode, &requestedPid_, 1});
+    return true;
+  }
+
+  ObdServiceStatus beginTransport(const ReadOnlyResult& guardResult) {
     lastTransportStatus_ = guardResult.transportStatus;
     if (guardResult.status == ReadOnlyStatus::PolicyDenied) {
       return finishWithoutTransport(ObdServiceStatus::PolicyDenied);
@@ -155,12 +186,16 @@ class ObdService {
   }
 
   ObdServiceStatus handleResponse(std::size_t responseLength) {
-    if (responseLength < 2) {
+    if (responseLength == 0) {
       return setStatus(ObdServiceStatus::UnexpectedResponse);
     }
 
     const auto expectedService = expectedPositiveService();
-    if (response_[0] != expectedService || response_[1] != requestedPid_) {
+    if (response_[0] != expectedService) {
+      return setStatus(ObdServiceStatus::UnexpectedResponse);
+    }
+    if (requestKind_ != RequestKind::StoredDtcs &&
+        (responseLength < 2 || response_[1] != requestedPid_)) {
       return setStatus(ObdServiceStatus::UnexpectedResponse);
     }
 
@@ -193,6 +228,30 @@ class ObdService {
           vin_[index] = static_cast<char>(response_[index + 3]);
         }
         return finish(ObdServiceStatus::ResponseReady);
+      case RequestKind::StoredDtcs: {
+        const auto dtcPayloadLength = responseLength - 1;
+        if ((dtcPayloadLength % 2) != 0) {
+          return finish(ObdServiceStatus::InvalidResponse);
+        }
+
+        std::array<ObdDtcRecord, kMaxStoredDtcRecords> parsed{};
+        std::size_t parsedCount = 0;
+        for (std::size_t offset = 1; offset < responseLength; offset += 2) {
+          const auto firstByte = response_[offset];
+          const auto secondByte = response_[offset + 1];
+          if (firstByte == 0 && secondByte == 0) {
+            continue;
+          }
+          if (parsedCount == parsed.size()) {
+            return finish(ObdServiceStatus::InvalidResponse);
+          }
+          parsed[parsedCount++] = {firstByte, secondByte};
+        }
+
+        storedDtcs_ = parsed;
+        storedDtcCount_ = parsedCount;
+        return finish(ObdServiceStatus::ResponseReady);
+      }
       case RequestKind::None:
         return finish(ObdServiceStatus::InvalidResponse);
     }
@@ -229,10 +288,22 @@ class ObdService {
     rawDataLength_ = 0;
     supportedPidBitmap_ = 0;
     vin_.fill('\0');
+    storedDtcs_.fill({});
+    storedDtcCount_ = 0;
   }
 
   std::uint8_t expectedPositiveService() const {
-    return requestKind_ == RequestKind::Vin ? 0x49 : 0x41;
+    switch (requestKind_) {
+      case RequestKind::Vin:
+        return 0x49;
+      case RequestKind::StoredDtcs:
+        return 0x43;
+      case RequestKind::CurrentData:
+      case RequestKind::SupportedPids:
+      case RequestKind::None:
+        return 0x41;
+    }
+    return 0;
   }
 
   static bool isSupportedPidBlockBase(std::uint8_t pid) {
@@ -258,6 +329,8 @@ class ObdService {
   std::size_t rawDataLength_{0};
   std::uint32_t supportedPidBitmap_{0};
   std::array<char, kVinLength> vin_{};
+  std::array<ObdDtcRecord, kMaxStoredDtcRecords> storedDtcs_{};
+  std::size_t storedDtcCount_{0};
 };
 
 }  // namespace vag_data
