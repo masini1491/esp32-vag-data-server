@@ -33,6 +33,10 @@ class FixedSignalRegistry {
 
   constexpr std::size_t size() const { return Count; }
 
+  const std::array<NormalizedSignalDescriptor, Count>& descriptors() const {
+    return descriptors_;
+  }
+
   // Not registered is not a determination of Unsupported capability.
   const NormalizedSignalDescriptor* lookup(
       const NormalizedVehicleSample::SignalId& identity) const {
