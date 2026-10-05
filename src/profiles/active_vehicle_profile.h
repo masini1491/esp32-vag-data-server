@@ -18,6 +18,7 @@ class ProfileIdentity {
   constexpr bool operator!=(ProfileIdentity other) const {
     return !(*this == other);
   }
+  constexpr std::uint32_t value() const { return value_; }
 
  private:
   std::uint32_t value_;

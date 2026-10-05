@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vehicle data API fixture</title>
+  <style>
+    :root { color-scheme: light dark; font: 16px/1.5 system-ui, sans-serif; }
+    body { margin: 2rem auto; max-width: 70rem; padding: 0 1rem; }
+    .notice { border: 1px solid #888; border-radius: .5rem; padding: 1rem; }
+    section { margin: 1.5rem 0; }
+    table { border-collapse: collapse; width: 100%; }
+    th, td { border-bottom: 1px solid #8888; padding: .5rem; text-align: left; }
+    code { overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Vehicle data fixture</h1>
+    <p class="notice">Fixture data only. This page does not connect to a vehicle or report live connectivity.</p>
+    <label for="fixture-select">Fixture state</label>
+    <select id="fixture-select">
+      <option value="unresolved">Unresolved profile</option>
+      <option value="selected">Selected Kamiq_NW4 fixture (identity 1)</option>
+    </select>
+    <div id="fixture-view" aria-live="polite"></div>
+  </main>
+  <script id="fixture-data" type="application/json">
+  {
+    "unresolved": {
+      "profileSelection": "manual_selection_required",
+      "capabilities": null,
+      "samples": []
+    },
+    "selected": {
+      "profileSelection": "selected",
+      "activeProfileId": 1,
+      "capabilities": [
+        {"signalId":"vehicle.speed","valueType":"numeric","unit":"km/h","support":"pending"},
+        {"signalId":"vehicle.rpm","valueType":"numeric","unit":"rpm","support":"pending"},
+        {"signalId":"vehicle.coolantTemp","valueType":"numeric","unit":"Cel","support":"pending"},
+        {"signalId":"vehicle.voltage","valueType":"numeric","unit":"V","support":"pending"}
+      ],
+      "samples": [
+        {"signalId":"vehicle.speed","unit":"km/h","valueType":"numeric","value":42.5,"source":"obd","quality":"stale","availability":"available","timestampMs":"9007199254740993"},
+        {"signalId":"vehicle.rpm","unit":"rpm","valueType":"numeric","value":1840,"source":"uds","quality":"valid_current","availability":"available","timestampMs":"1234"},
+        {"signalId":"vehicle.coolantTemp","unit":"Cel","source":"unknown","quality":"invalid_or_unknown","availability":"unavailable","timestampMs":"55"},
+        {"signalId":"vehicle.voltage","unit":"V","source":"unknown","quality":"invalid_or_unknown","availability":"pending","timestampMs":"56"},
+        {"signalId":"vehicle.gear","unit":"","source":"unknown","quality":"invalid_or_unknown","availability":"unknown","timestampMs":"57"},
+        {"signalId":"example.flag","unit":"","valueType":"boolean","value":false,"source":"derived","quality":"valid_current","availability":"available","timestampMs":"58"}
+      ]
+    }
+  }
+  </script>
+  <script src="./app.js"></script>
+</body>
+</html>
