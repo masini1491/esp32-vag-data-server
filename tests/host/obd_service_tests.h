@@ -238,9 +238,19 @@ inline void testObdStoredDtcTimeoutAndTransportFailures() {
   clock.advanceMs(50);
   EXPECT_TRUE(service.poll() == ObdServiceStatus::Timeout);
 
-  transport.sendStatus = TransportStatus::TxFailed;
-  EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::TransportFailure);
-  EXPECT_TRUE(service.lastTransportStatus() == TransportStatus::TxFailed);
+  constexpr std::array<TransportStatus, 5> startFailures{{
+      TransportStatus::Busy,
+      TransportStatus::TxBusy,
+      TransportStatus::TxFailed,
+      TransportStatus::BusOff,
+      TransportStatus::NotInitialized,
+  }};
+  for (const auto failure : startFailures) {
+    transport.sendStatus = failure;
+    EXPECT_TRUE(service.requestStoredDtcs() ==
+                ObdServiceStatus::TransportFailure);
+    EXPECT_TRUE(service.lastTransportStatus() == failure);
+  }
 
   transport.sendStatus = TransportStatus::Complete;
   EXPECT_TRUE(service.requestStoredDtcs() == ObdServiceStatus::InProgress);
