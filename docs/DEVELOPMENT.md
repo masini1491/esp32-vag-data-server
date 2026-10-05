@@ -16,6 +16,7 @@
 - Phase 6a: Profile identity + Active Profile manual selection boundary（host PASS；單一 Pending Kamiq 2024 target identity；automatic resolver、Brand runtime routing/mapping 尚未開始）
 - Phase 6b: Capability registry + normalized signal registry（host PASS；fixed immutable metadata；Kamiq_NW4 四個 candidate 均 Pending；runtime support learning/mapping 尚未實作）
 - Phase 6c: Deep Diagnostic on-demand path（Blocked；等待 EV-1 所述具體 Kamiq profile-owned route/DID/decode evidence；SOP 本身不解鎖 implementation）
+- Application-facing VehicleData read model / snapshot API：host PASS；readonly Profile／capability／Store projection，無 diagnostic TX／Scheduler／client serialization。
 - Phase 7: BLE
 - Phase 8: Web
 - Phase 9: Passive CAN
@@ -65,6 +66,8 @@ Required minimum dataset：VIN、`vehicle.speed`、`vehicle.rpm`、`vehicle.cool
 這代表 Phase 1 software foundation components、Stage 4R / Stage 4T hardening、Stage 5 evidence consolidation、Phase 2A host-testable ISO-TP / DiagnosticTransport core、Phase 3A `ReadOnlyGuard` safety gate、Phase 3B Generic OBD-II PID/VIN host service core、Phase 3C stored-DTC Mode `0x03` host slice、Phase 4A UDS `0x22` guard extension、Phase 4B Generic UDS `ReadDataByIdentifier` host service core、Phase 4C Generic UDS `0x19/0x02` host slice、Phase 5A normalized VehicleData sample/value semantics，Phase 5B bounded VehicleData Store/Cache，以及 Phase 5C cooperative Scheduler core 已完成。Phase 3C 僅保存最多 16 筆 raw two-byte DTC record，忽略 `0x0000` padding，並對 malformed／overflow fail closed；不含 DTC decoding、UDS `0x19` 或 vehicle semantics。Phase 4B 僅涵蓋 one-request-at-a-time 的 `0x22` raw DID data、terminal negative NRC 與 bounded `0x78` response-pending；Phase 5A 僅涵蓋單一 brand-independent normalized sample/value representation、copy-safe opaque ID/text、metadata、availability/quality invariants 與 64-bit timestamp；Phase 5B 僅涵蓋 fixed-capacity latest-state ownership、same-ID timestamp ordering、whole-sample replacement 與 copy-based read/snapshot，不包含 eviction、TTL/automatic aging、registry、Scheduler、profile mapping 或 application-facing diagnostic TX。其他 OBD DTC modes、UDS services/session/其他 `0x19` subfunctions、TesterPresent、VAG routing 與 application-facing diagnostic TX 尚未開始。Phase 2A / 3A / 3B / 3C / 4A / 4B / 4C / 5A / 5B / 5C 均未重新執行 ESP32 compile，因 ESP32-facing source participation / platform boundary 未改變；這不代表實體 TWAI receive 或 vehicle validation 已完成。
 
 Phase 4C 僅涵蓋 `19 02 <mask>`、`59 02 <availability>` 與最多 15 筆 raw DTC/status records；全零 DTC 不視為 padding。Malformed／overflow fail closed；共用既有 Busy、timeout、terminal NRC 與 bounded `0x78`。不含其他 subfunction、DTC 解碼、品牌／VehicleData mapping 或實體驗證；current evidence 見 `VALIDATION.md`。
+
+Application read projection 已於 `654f4b3a6e2c80248ba3204d8b54d045f32e72f2` 建立並通過 host tests：顯示 current selection／optional identity、associated immutable capability descriptors 與 copied Store snapshot；缺少 registry 不猜測 Unsupported，容量不足保持 caller output unchanged。此層不觸發 polling／diagnostic TX，不實作 BLE／Web／Logger。ESP32 compile evidence 沿用 Phase 1 原 scope；physical evidence 仍 Pending。
 
 Phase 5C 僅涵蓋 injected 64-bit Clock 的 cooperative timing/lifecycle kernel；Periodic 維持 absolute cadence 並跳過 missed periods，OnDemand pending/active request 合併，完成前只允許一個 active job。RealtimeTriggered、priority、callback/executor、automatic retry/backoff、Store aging/update、profile polling、FreeRTOS binding 與 application integration 尚未開始。
 
