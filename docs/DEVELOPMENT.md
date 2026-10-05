@@ -17,6 +17,19 @@
 - Phase 6b: Capability registry + normalized signal registry（host PASS；fixed immutable metadata；Kamiq_NW4 四個 candidate 均 Pending；runtime support learning/mapping 尚未實作）
 - Phase 6c: Deep Diagnostic on-demand path（Blocked；等待 EV-1 所述具體 Kamiq profile-owned route/DID/decode evidence；SOP 本身不解鎖 implementation）
 - Application-facing VehicleData read model / snapshot API：host PASS；readonly Profile／capability／Store projection，無 diagnostic TX／Scheduler／client serialization。
+- Phase 8 Web API/UI fixture path：implementation `54bd8f8975abc6dc29d52ac0af80ca0ed64fda00`；clang `22.1.8` host C++ compile/regression and Node `v24.19.0` fixture-render tests PASS。互動式 browser loading 為 `NOT_RUN_POLICY_LIMITED`（此 execution surface 禁止 `file://`），Node rendering 不代表 browser PASS。ESP32 compile 未重跑；Phase 1 compile evidence 不提升為 Phase 8 evidence。Bench／Hardware／Vehicle 維持 Pending，`VEHICLE_CONFIRMED = none`。Exact local validation commands:
+
+  ```powershell
+  $hostTest = Join-Path $env:TEMP 'phase8-host-tests.exe'
+  clang++ -std=c++17 -Wall -Wextra -pedantic -I. tests/host/main.cpp -o $hostTest
+  if ($LASTEXITCODE -ne 0) { throw 'Host compile failed' }
+  & $hostTest
+  if ($LASTEXITCODE -ne 0) { throw 'Host tests failed' }
+  node tests/web_fixture_tests.cjs
+  if ($LASTEXITCODE -ne 0) { throw 'Web fixture tests failed' }
+  ```
+
+  Interactive browser validation is not currently available in this execution surface; do not treat the Node fixture test as browser evidence.
 - Phase 7: BLE
 - Phase 8: Web
 - Phase 9: Passive CAN
