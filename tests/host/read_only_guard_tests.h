@@ -51,6 +51,11 @@ class RecordingDiagnosticTransport final : public DiagnosticTransport {
     receiveStatus = TransportStatus::Complete;
   }
 
+  void discardPendingMessage() override {
+    responseLength = 0;
+    receiveStatus = TransportStatus::NoData;
+  }
+
   void setResponse(const std::uint8_t* bytes, std::size_t length) {
     responseLength = length;
     if (length > response.size()) {

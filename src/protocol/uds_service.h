@@ -281,6 +281,9 @@ class UdsService {
   }
 
   UdsServiceStatus finish(UdsServiceStatus status) {
+    if (isRequestActive()) {
+      guard_.discardPendingMessage();
+    }
     state_ = State::Idle;
     return setStatus(status);
   }

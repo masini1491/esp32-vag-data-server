@@ -42,6 +42,10 @@ class DiagnosticTransport {
   virtual TransportStatus receive(std::uint8_t* payload,
                                   std::size_t capacity,
                                   std::size_t& length) = 0;
+  // Discard only this transport's currently buffered completed RX message.
+  // Idempotent when none is pending; does not abort RX assembly, TX, or drain
+  // backend traffic. receive() Overflow remains retryable until explicit discard.
+  virtual void discardPendingMessage() = 0;
 };
 
 }  // namespace vag_data

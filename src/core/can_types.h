@@ -41,7 +41,7 @@ struct CanFrame {
     if (format == CanFrameFormat::Standard) {
       return id <= 0x7FF;
     }
-    return id <= 0x1FFFFFFF;
+    return format == CanFrameFormat::Extended && id <= 0x1FFFFFFF;
   }
 };
 

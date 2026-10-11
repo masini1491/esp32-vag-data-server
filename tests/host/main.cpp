@@ -39,6 +39,11 @@ void testCanFrameModel() {
   EXPECT_TRUE(extendedMax.format == CanFrameFormat::Extended);
   EXPECT_TRUE(makeFrame(0x800, {}).isValid() == false);
   EXPECT_TRUE(makeFrame(0x20000000, {}, CanFrameFormat::Extended).isValid() == false);
+  for (const auto rawFormat : {2, 255}) {
+    const auto invalidFormat = makeFrame(
+        0x123, {0x01}, static_cast<CanFrameFormat>(rawFormat));
+    EXPECT_TRUE(!invalidFormat.isValid());
+  }
 
   const auto frame = makeFrame(0x123, {0x01, 0x02, 0x03});
   EXPECT_TRUE(frame.id == 0x123);
@@ -99,6 +104,9 @@ void testMockCanTxAndReset() {
   EXPECT_TRUE(mock.send(invalidStandard) == CanStatus::InvalidConfig);
   EXPECT_TRUE(mock.send(invalidExtended) == CanStatus::InvalidConfig);
   EXPECT_TRUE(mock.send(invalidPayload) == CanStatus::InvalidConfig);
+  EXPECT_TRUE(mock.send(makeFrame(0x123, {0x01},
+                                 static_cast<CanFrameFormat>(2))) ==
+              CanStatus::InvalidConfig);
   EXPECT_TRUE(mock.capturedTx().size() == 1);
   mock.clear();
   EXPECT_TRUE(mock.capturedTx().empty());

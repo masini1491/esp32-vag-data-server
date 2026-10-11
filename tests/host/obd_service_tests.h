@@ -92,6 +92,42 @@ inline void testObdWaitsForTransportCompletionBeforeTimeout() {
   EXPECT_TRUE(service.poll() == ObdServiceStatus::Timeout);
 }
 
+inline void testObdInvalidNewRequestPreservesActiveTransaction() {
+  for (const auto startStatus : {TransportStatus::Complete,
+                                 TransportStatus::InProgress}) {
+    RecordingDiagnosticTransport transport;
+    transport.sendStatus = startStatus;
+    FakeClock clock;
+    ReadOnlyGuard guard(transport);
+    ObdService service(guard, clock, {50});
+    EXPECT_TRUE(service.requestCurrentData(0x0C) == ObdServiceStatus::InProgress);
+    clock.advanceMs(49);
+    EXPECT_TRUE(service.requestSupportedPids(0x01) == ObdServiceStatus::Busy);
+    EXPECT_TRUE(service.isRequestActive());
+    EXPECT_TRUE(transport.sendCount == 1);
+    EXPECT_TRUE(transport.lastPayload[1] == 0x0C);
+    if (startStatus == TransportStatus::InProgress) {
+      transport.pollStatus = TransportStatus::Complete;
+      EXPECT_TRUE(service.poll() == ObdServiceStatus::InProgress);
+    }
+    transport.setResponse({0x41, 0x0C, 0x1A, 0xF8});
+    EXPECT_TRUE(service.poll() == ObdServiceStatus::ResponseReady);
+    EXPECT_TRUE(service.rawDataLength() == 2 && service.rawData()[1] == 0xF8);
+  }
+
+  RecordingDiagnosticTransport transport;
+  FakeClock clock;
+  ReadOnlyGuard guard(transport);
+  ObdService service(guard, clock, {50});
+  EXPECT_TRUE(service.requestCurrentData(0x0C) == ObdServiceStatus::InProgress);
+  clock.advanceMs(49);
+  EXPECT_TRUE(service.requestSupportedPids(0x01) == ObdServiceStatus::Busy);
+  clock.advanceMs(1);
+  EXPECT_TRUE(service.poll() == ObdServiceStatus::Timeout);
+  EXPECT_TRUE(service.requestSupportedPids(0x01) == ObdServiceStatus::InvalidRequest);
+  EXPECT_TRUE(transport.sendCount == 1);
+}
+
 inline void testObdSupportedPidBlocks() {
   RecordingDiagnosticTransport transport;
   FakeClock clock;
@@ -263,6 +299,7 @@ inline void runObdServiceTests() {
   testObdCurrentDataAndResponseMatching();
   testObdBusyTimeoutAndTransportFailures();
   testObdWaitsForTransportCompletionBeforeTimeout();
+  testObdInvalidNewRequestPreservesActiveTransaction();
   testObdSupportedPidBlocks();
   testObdVinValidation();
   testObdStoredDtcResponsesAndPadding();

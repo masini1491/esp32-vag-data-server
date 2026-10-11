@@ -47,6 +47,9 @@ class ObdService {
   }
 
   ObdServiceStatus requestSupportedPids(std::uint8_t basePid) {
+    if (isRequestActive()) {
+      return setStatus(ObdServiceStatus::Busy);
+    }
     if (!isSupportedPidBlockBase(basePid)) {
       return finishWithoutTransport(ObdServiceStatus::InvalidRequest);
     }
@@ -274,6 +277,9 @@ class ObdService {
   }
 
   ObdServiceStatus finish(ObdServiceStatus status) {
+    if (isRequestActive()) {
+      guard_.discardPendingMessage();
+    }
     state_ = State::Idle;
     requestKind_ = RequestKind::None;
     return setStatus(status);

@@ -89,7 +89,7 @@ class IsoTpTransport final : public DiagnosticTransport {
       return TransportStatus::Timeout;
     }
     if (txState_ == TxState::Sending && now >= txNextSendMs_) {
-      return sendNextConsecutiveFrame(now);
+      return sendNextConsecutiveFrame();
     }
     return txState_ == TxState::Idle ? TransportStatus::Idle
                                      : TransportStatus::InProgress;
@@ -108,6 +108,11 @@ class IsoTpTransport final : public DiagnosticTransport {
     rxMessageReady_ = false;
     rxMessageLength_ = 0;
     return TransportStatus::Complete;
+  }
+
+  void discardPendingMessage() override {
+    rxMessageReady_ = false;
+    rxMessageLength_ = 0;
   }
 
   // The CAN owner/dispatcher supplies frames. This class never drains
@@ -326,16 +331,20 @@ class IsoTpTransport final : public DiagnosticTransport {
       txBlockSize_ = frame.payload[1];
       txBlockRemaining_ = txBlockSize_;
       txSeparationMs_ = separationMs;
-      txNextSendMs_ = now;
+      // First CF is immediately eligible; subsequent blocks retain the gap
+      // from the last CF successfully accepted by HAL, not from FC arrival.
+      txNextSendMs_ = txHasLastCf_
+                          ? std::max(now, txLastCfMs_ + txSeparationMs_)
+                          : now;
       txState_ = TxState::Sending;
       return TransportStatus::InProgress;
     }
     if (flowStatus == 0x1) {
-      ++txWaitCount_;
-      if (txWaitCount_ > config_.maxWaitFrames) {
+      if (txWaitCount_ >= config_.maxWaitFrames) {
         resetTx();
         return TransportStatus::WaitLimitExceeded;
       }
+      ++txWaitCount_;
       txDeadlineMs_ = now + config_.flowControlTimeoutMs;
       return TransportStatus::InProgress;
     }
@@ -356,7 +365,7 @@ class IsoTpTransport final : public DiagnosticTransport {
     return sendFrame(frame);
   }
 
-  TransportStatus sendNextConsecutiveFrame(std::uint64_t now) {
+  TransportStatus sendNextConsecutiveFrame() {
     CanFrame frame = makeTxFrame();
     const auto remaining = txLength_ - txOffset_;
     const auto copyLength = std::min<std::size_t>(7, remaining);
@@ -374,6 +383,9 @@ class IsoTpTransport final : public DiagnosticTransport {
       return status;
     }
 
+    const auto acceptedAt = clock_.nowMs();
+    txLastCfMs_ = acceptedAt;
+    txHasLastCf_ = true;
     txOffset_ += copyLength;
     txSequence_ = static_cast<std::uint8_t>((txSequence_ + 1U) & 0x0FU);
     if (txOffset_ == txLength_) {
@@ -385,11 +397,11 @@ class IsoTpTransport final : public DiagnosticTransport {
       --txBlockRemaining_;
       if (txBlockRemaining_ == 0) {
         txState_ = TxState::WaitFlowControl;
-        txDeadlineMs_ = now + config_.flowControlTimeoutMs;
+        txDeadlineMs_ = acceptedAt + config_.flowControlTimeoutMs;
         return TransportStatus::InProgress;
       }
     }
-    txNextSendMs_ = now + txSeparationMs_;
+    txNextSendMs_ = acceptedAt + txSeparationMs_;
     return TransportStatus::InProgress;
   }
 
@@ -413,6 +425,8 @@ class IsoTpTransport final : public DiagnosticTransport {
     txSeparationMs_ = 0;
     txDeadlineMs_ = 0;
     txNextSendMs_ = 0;
+    txLastCfMs_ = 0;
+    txHasLastCf_ = false;
   }
 
   CanHal& can_;
@@ -437,6 +451,8 @@ class IsoTpTransport final : public DiagnosticTransport {
   std::uint64_t rxDeadlineMs_{0};
   std::uint64_t txDeadlineMs_{0};
   std::uint64_t txNextSendMs_{0};
+  std::uint64_t txLastCfMs_{0};
+  bool txHasLastCf_{false};
   bool rxMessageReady_{false};
 };
 

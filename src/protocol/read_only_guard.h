@@ -75,6 +75,8 @@ class ReadOnlyGuard {
     return transport_.receive(payload, capacity, length);
   }
 
+  void discardPendingMessage() { transport_.discardPendingMessage(); }
+
  private:
   static constexpr std::uint8_t kModeCurrentData = 0x01;
   static constexpr std::uint8_t kModeStoredDtcRead = 0x03;
