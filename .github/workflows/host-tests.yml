@@ -14,8 +14,16 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.19.0
+
       - name: Compile host tests
         run: g++ -std=c++17 -Wall -Wextra -pedantic -I. tests/host/main.cpp -o "$RUNNER_TEMP/host_tests"
 
       - name: Run host tests
         run: "$RUNNER_TEMP/host_tests"
+
+      - name: Run Web fixture tests
+        run: node tests/web_fixture_tests.cjs
