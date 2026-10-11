@@ -8,11 +8,6 @@
 
 ---
 
-## VAG-CI-001 — Node Web fixture CI coverage
-- **State:** Hot / Ready for separately authorized Codex launch；前置 VAG-CORR-001 已完成 canonical reconciliation，尚未授權本 Stage 執行。
-- **Owner:** Codex（另行授權的 CI workflow 修改與驗證）。
-- **Goal:** 現有 `.github/workflows/host-tests.yml` 只執行 C++ host tests；將既有 `tests/web_fixture_tests.cjs` 納入 GitHub Actions，使用明確、適用的 Node 版本與最低充分步驟。
-- **Scope / validation:** 不修改 Web runtime/UI 行為、不納入 ESP32 compile CI、不中途擴張其他工作；驗證 exact source candidate 的 C++ host tests、Node fixture tests 與對應 Actions run 成功；若 CI runner／service unavailable，明確記錄 Pending，不宣稱通過。
-- **Launch boundary:** 本 item 是獨立 Stage；`VAG-CORR-001` 的 Codex Prompt 不授權它。使用者另行明確授權後，需重新核對 current repo／Playbook 與 Hot state，再執行本 Stage。
+## EMPTY
 
----
+目前沒有 admitted Hot work。Cold／future-trigger 工作仍由 `BACKLOG.md` 管理，且不具 execution authority。
