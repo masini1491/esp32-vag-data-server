@@ -9,7 +9,7 @@
 ---
 
 ## VAG-CORR-001 — ISO-TP／OBD 邊界正確性修復
-- **State:** Hot / ready for separately authorized Codex launch.
+- **State:** Hot / Pending canonical reconciliation by ChatGPT：implementation 與 local validation 已完成於 `27b9c55da0578d42288ca4d111fef4ae672fee20`；scoped evidence 見 `VALIDATION.md`。本 entry 不授權重做 implementation 或啟動 VAG-CI-001；canonical reconciliation 完成前不移除。
 - **Owner:** Codex（source、host regression、必要的 `VALIDATION.md` evidence）；ChatGPT 負責 coordination admission 與完成後 canonical reconciliation。
 - **Goal:** 針對 2026-10-11 focused correctness 健檢中五項已重現／經 source 覆核的缺陷，做最低充分 root-cause 修補與 deterministic regression，保留既有 read-only diagnostic boundary。
 - **Evidence baseline:** 健檢及 GitHub source review 針對 `main@03b751ed21322623098b5cfea67b962983bcbd94`；此 SHA 僅為歷史 evidence，不是 execution pin，Codex 執行前須依 current repo governance fresh-sync / reconcile。涉及 `src/protocol/isotp_transport.h`、`src/protocol/obd_service.h`、`src/core/can_types.h` 與相應 `tests/host/*`。
