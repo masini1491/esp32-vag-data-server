@@ -10,6 +10,7 @@
 #include "../../src/vag/kamiq_nw4_capabilities.h"
 #include "ble_payload_decoder.h"
 #include "test_helpers.h"
+#include "utf8_test_data.h"
 
 namespace vag_data::test {
 
@@ -219,7 +220,71 @@ inline void testBlePayloadCapacityDeterminismAndMalformedInput() {
   EXPECT_TRUE(!decodeBlePayload(truncated.data(), truncated.size(), decoded));
 }
 
+inline void testBleUtf8RoundTripAndMalformedIngress() {
+  NormalizedVehicleSample sample;
+  EXPECT_TRUE(NormalizedVehicleSample::tryText(
+      utf8_cases::kSignalId, utf8_cases::kText, utf8_cases::kUnit,
+      VehicleSource::Uds, VehicleQuality::Stale, UINT64_MAX, sample));
+  std::array<std::uint8_t, 256> bytes{};
+  const auto size = encodePayload(
+      [&](std::uint8_t* out, std::size_t capacity) {
+        return encodeBleSampleRecord(sample, 0, out, capacity);
+      }, bytes);
+  DecodedBlePayload decoded;
+  EXPECT_TRUE(decodeBlePayload(bytes.data(), size, decoded));
+  EXPECT_TRUE(decoded.signalId == sample.signalId());
+  EXPECT_TRUE(decoded.unit == sample.unit());
+  EXPECT_TRUE(decoded.textValue == sample.value().textValue());
+  EXPECT_TRUE(decoded.timestampMs == UINT64_MAX);
+  EXPECT_TRUE(decoded.source == sample.source());
+  EXPECT_TRUE(decoded.quality == sample.quality());
+  EXPECT_TRUE(decoded.availability == sample.availability());
+
+  // v1 sample: header + index + length-prefixed ID, type/presence, text, unit.
+  const std::size_t signalOffset = 5;
+  const auto textOffset = signalOffset + sample.signalId().size() + 3;
+  const auto unitOffset = textOffset + sample.value().textValue().size() + 1;
+  EXPECT_TRUE(bytes[0] == 1 && bytes[1] == 3);
+  for (const auto offset : {signalOffset, textOffset, unitOffset}) {
+    auto malformed = bytes;
+    malformed[offset] = 0x80;
+    EXPECT_TRUE(!decodeBlePayload(malformed.data(), size, decoded));
+  }
+
+  // The host decoder also delegates every length-delimited string to BoundedText.
+  for (const char* malformed : utf8_cases::kMalformed) {
+    std::array<std::uint8_t, 32> wire{};
+    const auto length = std::strlen(malformed);
+    wire[0] = static_cast<std::uint8_t>(length);
+    std::memcpy(wire.data() + 1, malformed, length);
+    BlePayloadReader reader(wire.data(), length + 1);
+    NormalizedVehicleValue::Text value;
+    EXPECT_TRUE(!reader.string(value));
+  }
+  const std::uint8_t hiddenMalformed[] = {2, 0, 0x80};
+  BlePayloadReader reader(hiddenMalformed, sizeof(hiddenMalformed));
+  NormalizedVehicleValue::Text value;
+  EXPECT_TRUE(!reader.string(value));
+
+  const NormalizedSignalDescriptor capability{
+      sample.signalId(), VehicleValueType::Text, sample.unit(), CapabilitySupport::Pending};
+  const auto capabilitySize = encodePayload(
+      [&](std::uint8_t* out, std::size_t capacity) {
+        return encodeBleCapabilityRecord(capability, 0, out, capacity);
+      }, bytes);
+  EXPECT_TRUE(decodeBlePayload(bytes.data(), capabilitySize, decoded));
+  EXPECT_TRUE(decoded.capability.identity == capability.identity);
+  EXPECT_TRUE(decoded.capability.unit == capability.unit);
+  const auto capabilityUnitOffset = signalOffset + capability.identity.size() + 2;
+  for (const auto offset : {signalOffset, capabilityUnitOffset}) {
+    auto malformed = bytes;
+    malformed[offset] = 0x80;
+    EXPECT_TRUE(!decodeBlePayload(malformed.data(), capabilitySize, decoded));
+  }
+}
+
 inline void runBlePayloadTests() {
+  testBleUtf8RoundTripAndMalformedIngress();
   testBleSnapshotMetadataRecords();
   testBleCapabilityRecords();
   testBleSampleRecordsAndTimestampRoundTrip();

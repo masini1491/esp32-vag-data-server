@@ -7,6 +7,8 @@
 
 namespace vag_data {
 
+// NUL-terminated, well-formed UTF-8 (Unicode scalar values). Capacity is in
+// bytes; assignment never repairs, normalizes or truncates the input.
 template <std::size_t Capacity>
 class BoundedText {
  public:
@@ -20,7 +22,7 @@ class BoundedText {
       return false;
     }
     const auto length = std::strlen(value);
-    if (length > Capacity) {
+    if (length > Capacity || !isWellFormedUtf8(value, length)) {
       clear();
       return false;
     }
@@ -45,6 +47,47 @@ class BoundedText {
   }
 
  private:
+  static bool isWellFormedUtf8(const char* value, std::size_t length) {
+    const auto* bytes = reinterpret_cast<const unsigned char*>(value);
+    std::size_t index = 0;
+    while (index < length) {
+      const auto lead = bytes[index++];
+      if (lead <= 0x7F) {
+        continue;
+      }
+
+      std::size_t continuationCount;
+      unsigned char secondMin = 0x80;
+      unsigned char secondMax = 0xBF;
+      if (lead >= 0xC2 && lead <= 0xDF) {
+        continuationCount = 1;
+      } else if (lead >= 0xE0 && lead <= 0xEF) {
+        continuationCount = 2;
+        if (lead == 0xE0) secondMin = 0xA0;  // Reject overlong encodings.
+        if (lead == 0xED) secondMax = 0x9F;  // Exclude UTF-16 surrogates.
+      } else if (lead >= 0xF0 && lead <= 0xF4) {
+        continuationCount = 3;
+        if (lead == 0xF0) secondMin = 0x90;  // Reject overlong encodings.
+        if (lead == 0xF4) secondMax = 0x8F;  // At most U+10FFFF.
+      } else {
+        return false;
+      }
+
+      if (continuationCount > length - index || bytes[index] < secondMin ||
+          bytes[index] > secondMax) {
+        return false;
+      }
+      ++index;
+      for (std::size_t part = 1; part < continuationCount; ++part) {
+        if (bytes[index] < 0x80 || bytes[index] > 0xBF) {
+          return false;
+        }
+        ++index;
+      }
+    }
+    return true;
+  }
+
   std::array<char, Capacity + 1> data_{};
   std::size_t length_{0};
 };

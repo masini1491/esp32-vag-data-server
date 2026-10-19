@@ -7,6 +7,7 @@
 
 #include "../../src/application/vehicle_data_export_record.h"
 #include "test_helpers.h"
+#include "utf8_test_data.h"
 
 namespace vag_data::test {
 
@@ -60,7 +61,61 @@ inline void expectExportRoundTrip(const NormalizedVehicleSample& input) {
   EXPECT_TRUE(sameExportSample(input, decoded));
 }
 
+inline void testExportUtf8RoundTripAndMalformedIngress() {
+  using Status = VehicleDataExportStatus;
+  NormalizedVehicleSample sample;
+  EXPECT_TRUE(NormalizedVehicleSample::tryText(
+      utf8_cases::kSignalId, utf8_cases::kText, utf8_cases::kUnit,
+      VehicleSource::Derived, VehicleQuality::Stale, UINT64_MAX, sample));
+  expectExportRoundTrip(sample);
+  NormalizedVehicleSample status;
+  EXPECT_TRUE(NormalizedVehicleSample::tryStatus(
+      utf8_cases::kSignalId, VehicleAvailability::Pending, utf8_cases::kUnit,
+      VehicleSource::Unknown, VehicleQuality::InvalidOrUnknown, UINT64_MAX, status));
+  expectExportRoundTrip(status);
+
+  std::array<std::uint8_t, 256> bytes{};
+  std::size_t written = 0;
+  EXPECT_TRUE(VehicleDataExportRecord::encode(sample, bytes.data(), bytes.size(),
+                                              written) == Status::Ok);
+  const auto signalOffset = VehicleDataExportRecord::kHeaderSize;
+  const auto unitOffset = signalOffset + sample.signalId().size();
+  const auto textOffset = unitOffset + sample.unit().size();
+  EXPECT_TRUE(bytes[4] == 1 && bytes[20] == sample.signalId().size() &&
+              bytes[21] == sample.unit().size() &&
+              bytes[22] == sample.value().textValue().size());
+  EXPECT_TRUE(std::memcmp(bytes.data() + signalOffset, utf8_cases::kSignalId,
+                          sample.signalId().size()) == 0);
+  EXPECT_TRUE(std::memcmp(bytes.data() + unitOffset, utf8_cases::kUnit,
+                          sample.unit().size()) == 0);
+  EXPECT_TRUE(std::memcmp(bytes.data() + textOffset, utf8_cases::kText,
+                          sample.value().textValue().size()) == 0);
+  auto decoded = sample;
+  for (const auto offset : {signalOffset, unitOffset, textOffset}) {
+    auto malformed = bytes;
+    malformed[offset] = 0x80;
+    EXPECT_TRUE(VehicleDataExportRecord::decode(malformed.data(), written, decoded) ==
+                Status::MalformedRecord);
+    EXPECT_TRUE(sameExportSample(decoded, sample));
+  }
+
+  // Keep the v1 framing unchanged while replacing only the text payload.
+  for (const char* malformed : utf8_cases::kMalformed) {
+    auto record = bytes;
+    const auto length = std::strlen(malformed);
+    const auto recordLength = textOffset + length;
+    record[5] = static_cast<std::uint8_t>(recordLength);
+    record[6] = static_cast<std::uint8_t>(recordLength >> 8);
+    record[22] = static_cast<std::uint8_t>(length);
+    std::memcpy(record.data() + textOffset, malformed, length);
+    EXPECT_TRUE(VehicleDataExportRecord::decode(record.data(), recordLength, decoded) ==
+                Status::MalformedRecord);
+    EXPECT_TRUE(sameExportSample(decoded, sample));
+  }
+}
+
 inline void runLoggerExportTests() {
+  testExportUtf8RoundTripAndMalformedIngress();
   using Status = VehicleDataExportStatus;
   using Sample = NormalizedVehicleSample;
 

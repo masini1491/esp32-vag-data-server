@@ -11,10 +11,71 @@
 #include "../../src/application/web_vehicle_data_response.h"
 #include "../../src/vag/profile_set.h"
 #include "test_helpers.h"
+#include "utf8_test_data.h"
 
 namespace vag_data::test {
 
+inline void testWebUtf8Response() {
+  using Sample = NormalizedVehicleSample;
+  const NormalizedSignalDescriptor capability{
+      Sample::SignalId(utf8_cases::kSignalId), VehicleValueType::Text,
+      Sample::Unit(utf8_cases::kUnit), CapabilitySupport::Pending};
+  // Nine UTF-8 bytes plus eight ASCII bytes exactly fill the text capacity.
+  constexpr char text[] = u8"é溫🚗\"\\\b\f\n\r\t\x01";
+  static_assert(sizeof(text) - 1 == NormalizedVehicleValue::kMaxTextLength);
+  Sample sample;
+  EXPECT_TRUE(Sample::tryText(utf8_cases::kSignalId, text, utf8_cases::kUnit,
+                              VehicleSource::Derived, VehicleQuality::ValidCurrent,
+                              UINT64_MAX, sample));
+  VehicleDataReadSnapshot metadata;
+  metadata.hasCapabilityRegistry = true;
+  metadata.capabilityCount = 1;
+  metadata.sampleCount = 1;
+  constexpr char expected[] =
+      u8"{\"profileSelection\":\"unknown\",\"capabilities\":[{"
+      "\"signalId\":\"vehicle.溫度\",\"valueType\":\"text\",\"unit\":\"°C\","
+      "\"support\":\"pending\"}],\"samples\":[{\"signalId\":\"vehicle.溫度\","
+      "\"unit\":\"°C\",\"valueType\":\"text\",\"value\":\"é溫🚗"
+      "\\\"\\\\\\b\\f\\n\\r\\t\\u0001\",\"source\":\"derived\","
+      "\"quality\":\"valid_current\",\"availability\":\"available\","
+      "\"timestampMs\":\"18446744073709551615\"}]}";
+  std::array<char, 1024> output;
+  output.fill('x');
+  const auto before = output;
+  const auto sizing = serializeWebVehicleDataResponse(
+      metadata, &capability, &sample, nullptr, 0);
+  EXPECT_TRUE(sizing.status == WebResponseSerializationStatus::InsufficientCapacity);
+  EXPECT_TRUE(sizing.requiredCapacity == sizeof(expected));
+  const auto shortResult = serializeWebVehicleDataResponse(
+      metadata, &capability, &sample, output.data(), sizing.requiredCapacity - 1);
+  EXPECT_TRUE(shortResult.status == WebResponseSerializationStatus::InsufficientCapacity);
+  EXPECT_TRUE(shortResult.requiredCapacity == sizing.requiredCapacity);
+  EXPECT_TRUE(output == before);
+  const auto exact = serializeWebVehicleDataResponse(
+      metadata, &capability, &sample, output.data(), sizing.requiredCapacity);
+  EXPECT_TRUE(exact.status == WebResponseSerializationStatus::Serialized);
+  EXPECT_TRUE(exact.requiredCapacity == sizeof(expected));
+  EXPECT_TRUE(std::memcmp(output.data(), expected, sizeof(expected)) == 0);
+  EXPECT_TRUE(output[sizeof(expected)] == 'x');
+
+  // Rejected ingress cannot replace the valid sample subsequently serialized.
+  for (const char* malformed : utf8_cases::kMalformed) {
+    EXPECT_TRUE(!Sample::tryText("id", malformed, "u", VehicleSource::Unknown,
+                                 VehicleQuality::Stale, 1, sample));
+    auto invalidCapability = capability;
+    EXPECT_TRUE(!invalidCapability.identity.assign(malformed));
+    EXPECT_TRUE(invalidCapability.identity.empty());
+    EXPECT_TRUE(!invalidCapability.unit.assign(malformed));
+    EXPECT_TRUE(invalidCapability.unit.empty());
+  }
+  const auto repeated = serializeWebVehicleDataResponse(
+      metadata, &capability, &sample, output.data(), sizing.requiredCapacity);
+  EXPECT_TRUE(repeated.status == WebResponseSerializationStatus::Serialized);
+  EXPECT_TRUE(std::memcmp(output.data(), expected, sizeof(expected)) == 0);
+}
+
 inline void runWebVehicleDataResponseTests() {
+  testWebUtf8Response();
   std::array<NormalizedSignalDescriptor, 4> descriptors{{
       {NormalizedVehicleSample::SignalId("vehicle.speed"),
        VehicleValueType::Numeric, NormalizedVehicleSample::Unit("km/h"),

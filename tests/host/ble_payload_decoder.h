@@ -78,6 +78,9 @@ class BlePayloadReader {
   bool string(BoundedText<Capacity>& value) {
     std::uint8_t length = 0;
     if (!byte(length) || length > Capacity || length > remaining()) return false;
+    // A length-delimited wire string must not hide trailing bytes behind a NUL
+    // when it crosses the normalized model's C-string boundary.
+    if (std::memchr(bytes_ + offset_, 0, length) != nullptr) return false;
     char buffer[Capacity + 1]{};
     if (length != 0) {
       std::memcpy(buffer, bytes_ + offset_, length);
